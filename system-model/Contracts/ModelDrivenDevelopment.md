@@ -127,7 +127,7 @@ Si usa la configurazione predefinita di gitleaks, senza file `.gitleaks.toml`, f
 Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-baseline, commit adottato `bbc76b2`. Il catalogo delle decisioni è `CATALOG.md` a quel commit; i temi sono in `themes/`. Questo elemento è l'unico del modello che nomina il commit.
 
 #### Temi esaminati e non adottati
-- «Business authorization»: Ambrogio non ha operazioni il cui permesso dipende da chi le invoca, perché la famiglia condivide un'unica identità e l'accesso è limitato dalla rete dell'installazione; l'autenticazione, comprese «Authentication delegated to an external identity provider» e «Keycloak as identity provider», è rimandata a una decisione di prodotto separata.
+- «Business authorization»: Ambrogio non ha operazioni il cui permesso dipende da chi le invoca, perché la famiglia condivide un'unica identità e l'accesso è limitato dalla rete dell'installazione; l'autenticazione, comprese «Authentication delegated to an external identity provider» e «Keycloak as identity provider», non è adottata: il backend non ha account né autenticazione applicativa, secondo «Assenza di account e autenticazione applicativa nell'MVP».
 - «Business module autonomy»: il backend ha un solo modulo business.
 - «Domain events»: il Domain non registra eventi delle proprie transizioni.
 - «Open-core editions»: Ambrogio ha una sola edizione open source con licenza MIT, senza parti proprietarie.
@@ -138,7 +138,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 - «Drain of accepted requests on shutdown»: all'arresto i turni in corso sono interrotti, secondo «Interruption of active operations on shutdown».
 - «OpenAPI contract generated from the routes»: non adottata per decisione della persona; l'API HTTP pubblica è descritta dai contratti del modello e dal riferimento delle API HTTP di `ambrogio-docs`, il protocollo dallo schema JSON pubblicato.
 - «MCP for model authoring and CLI for repeatable checks»: il modello si legge e si modifica soltanto con la CLI Reqvire.
-- «Protected HTTP surface by default»: rimandata con la decisione separata sull'autenticazione; oggi l'accesso al backend è limitato dalla rete dell'installazione e dal reverse proxy.
+- «Protected HTTP surface by default»: non adottata, perché il backend non ha autenticazione applicativa; l'accesso al backend è limitato dalla rete dell'installazione e dal reverse proxy.
 - «No save after refused creation»: la creazione di un turno non prevede rifiuti; i dati non validi sono rifiutati prima del Domain.
 - «References between aggregates by identity»: il Domain ha un solo tipo di aggregato.
 - «Independent graph per process»: ogni componente esegue un solo processo.
