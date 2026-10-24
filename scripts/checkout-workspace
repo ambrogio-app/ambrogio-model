@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# checkout-workspace — clone the repositories of the model that are missing from a workspace folder,
+# each on BRANCH when that branch exists on the remote, otherwise on main, with full history so that
+# change impact can find the base of each repository. Used by CI, where only the repository under
+# test is checked out.
+#
+# Usage: checkout-workspace WORKSPACE BRANCH
+set -euo pipefail
+WORKSPACE="$1"; BRANCH="$2"
+OWNER_URL="https://github.com/ambrogio-app"
+REPOSITORIES=(ambrogio-model ambrogio-backend ambrogio-satellite ambrogio-cli ambrogio-web)
+
+for repository in "${REPOSITORIES[@]}"; do
+  [ -e "$WORKSPACE/$repository" ] && continue
+  url="$OWNER_URL/$repository.git"
+  ref=main
+  if [ -n "$BRANCH" ] && git ls-remote --exit-code --heads "$url" "$BRANCH" >/dev/null; then ref="$BRANCH"; fi
+  git clone --quiet --branch "$ref" "$url" "$WORKSPACE/$repository"
+  echo "$repository: $ref" >&2
+done

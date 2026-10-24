@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# rv — read-only Reqvire commands (search, collect, coverage, traces, submodels, lint, validate, …) on a
+# temporary mirror of the files Git sees in the workspace, at the pinned version. Fast, because Reqvire
+# does not walk installed dependencies. Commands that change the model must run on the real workspace
+# folder instead: their changes would be lost with the mirror.
+#
+# Usage: rv <reqvire command and options>
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=reqvire-workspace.sh
+. "$HERE/reqvire-workspace.sh"
+case "${1:-}" in
+  add|rm|mv|rename|merge|link|unlink|relink|mv-file|mv-folder|mv-asset|rm-asset|migrate|format)
+    echo "rv: '$1' changes the model; run Reqvire on the workspace folder instead" >&2; exit 2 ;;
+esac
+ROOT="$(workspace_root)"
+reqvire_cmd
+MIRROR="$(workspace_mirror "$ROOT")"; trap 'rm -rf "$MIRROR"' EXIT
+"${REQVIRE_CMD[@]}" --workspace "$MIRROR" "$@"

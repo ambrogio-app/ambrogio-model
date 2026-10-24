@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""repo-deps — dependency graph between the Git repositories of a Reqvire workspace.
+
+Scans the Markdown links of every repository under the workspace; a link from repository A that
+resolves into repository B means A depends on B (A cannot be validated without B checked out).
+The repositories are the child folders that are valid Git worktrees with a system-model/ folder;
+the workspace defaults to the folder that contains ambrogio-model.
+
+Usage: repo-deps [--workspace DIR] [--repo NAME] [--check-acyclic]
+  --workspace DIR    workspace root (default: the folder that contains ambrogio-model)
+  --repo NAME        print what NAME needs (dependencies) and who may break (dependents)
+  --check-acyclic    exit 1 if the repository graph has a cycle
+"""
+import argparse
+import os
+import re
+import subprocess
+import sys
+
+LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--workspace", default=os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".."))
+ap.add_argument("--repo")
+ap.add_argument("--check-acyclic", action="store_true")
+args = ap.parse_args()
+
+root = os.path.realpath(args.workspace)
+
+
+def is_model_repository(path):
+    """Top level of a valid Git worktree that contains system-model/."""
+    if not os.path.isdir(os.path.join(path, "system-model")):
+        return False
+    top = subprocess.run(["git", "-C", path, "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return top.returncode == 0 and os.path.realpath(top.stdout.strip()) == os.path.realpath(path)
+
+
+repos = sorted(d for d in os.listdir(root) if is_model_repository(os.path.join(root, d)))
+deps = {r: set() for r in repos}
+evidence = {}
+
+for r in repos:
+    for dirpath, dirnames, filenames in os.walk(os.path.join(root, r)):
+        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules")]
+        for fn in filenames:
+            if not fn.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, fn)
+            with open(path, encoding="utf-8", errors="replace") as f:
+                text = f.read()
+            for target in LINK.findall(text):
+                if "://" in target:
+                    continue
+                rel = os.path.relpath(os.path.realpath(os.path.join(dirpath, target)), root)
+                if rel.startswith(".."):
+                    continue
+                other = rel.split(os.sep, 1)[0]
+                if other != r and other in deps:
+                    deps[r].add(other)
+                    evidence.setdefault((r, other), os.path.relpath(path, root))
+
+
+def closure(start, graph):
+    """Nodes reachable from start; contains start only if start lies on a cycle."""
+    seen, stack = set(), [start]
+    while stack:
+        for n in graph[stack.pop()]:
+            if n not in seen:
+                seen.add(n)
+                stack.append(n)
+    return seen
+
+
+rdeps = {r: {s for s in repos if r in deps[s]} for r in repos}
+
+if args.repo:
+    if args.repo not in deps:
+        sys.exit(f"unknown repository: {args.repo}")
+    print("needs:     ", " ".join(sorted(closure(args.repo, deps) - {args.repo})) or "-")
+    print("may break: ", " ".join(sorted(closure(args.repo, rdeps) - {args.repo})) or "-")
+else:
+    for r in repos:
+        for d in sorted(deps[r]):
+            print(f"{r} -> {d}    (e.g. {evidence[(r, d)]})")
+
+if args.check_acyclic:
+    cyclic = [r for r in repos if r in closure(r, deps)]
+    if cyclic:
+        print("ERROR: repository dependency cycle involving: " + ", ".join(cyclic), file=sys.stderr)
+        sys.exit(1)
+    print("repository graph: acyclic", file=sys.stderr)

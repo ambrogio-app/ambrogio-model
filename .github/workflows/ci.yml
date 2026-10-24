@@ -1,0 +1,45 @@
+name: Model CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Model checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: workspace/ambrogio-model
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Check out the other repositories side by side
+        run: workspace/ambrogio-model/scripts/checkout-workspace workspace "$BRANCH"
+
+      - name: Check the model of the workspace
+        run: workspace/ambrogio-model/scripts/model-checks --workspace workspace
+
+      - name: Report change impact
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          workspace/ambrogio-model/scripts/change-impact-composite --workspace workspace >> "$GITHUB_STEP_SUMMARY"
