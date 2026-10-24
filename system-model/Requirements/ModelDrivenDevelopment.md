@@ -359,6 +359,24 @@ Origine: baseline Reqvire «Command-line model authoring», adottata.
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
+### Motivazioni nei dettagli del requisito
+
+I testi dei contratti non devono contenere alternative valutate, motivazioni della scelta o storia delle decisioni; quando il modello registra le alternative di una scelta e il motivo della scelta attuale, deve registrarli nei Details del requisito proprietario del contratto, con una riga «Alternative: <alternativa> (<conseguenza che la esclude>); …» e una riga «Motivo: <perché vale la scelta attuale>.», al presente e senza racconto della valutazione.
+
+#### Details
+Il contratto è la specifica da realizzare e verificare; le ragioni di una scelta servono a chi la rivede e appartengono al requisito che il contratto precisa, nella sezione Details che non esprime obblighi. Una scelta con più aspetti, come lo stato e gli stili di un client, usa righe qualificate, per esempio «Alternative per lo stato: …». Un'alternativa resta nei Details finché spiega la scelta attuale: un'alternativa esclusa da un'altra decisione del modello si descrive con quella decisione oppure si toglie. Formule come «sono state considerate» o «si è scelto» raccontano la valutazione invece di descrivere il modello di oggi. Lo script di integrità segnala i contratti con un'intestazione `#### Alternative` o con le formule «Alternative considerate» o «Alternative e conseguenze»; forma e contenuto delle righe nei Details sono controllati nella revisione.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Script di integrità del modello](../Contracts/ModelDrivenDevelopment.md#script-di-integrità-del-modello)
+
+#### Relations
+  * satisfiedBy: [check-model.mjs](../../scripts/check-model.mjs)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Ordine di lavoro guidato dal modello
 
 Quando una modifica introduce o cambia una capacità o un comportamento di Ambrogio, la modifica deve seguire l'ordine capability, concetti e ontologie, requisiti, contratti, contratti semantici, verifiche, test e implementazione, validazione e revisione, e deve registrare nel modello gli elementi interessati prima dei test e dell'implementazione; un comportamento o una scelta tecnica non registrati nel modello non devono essere implementati.

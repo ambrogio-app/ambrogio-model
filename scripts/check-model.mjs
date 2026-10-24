@@ -1,6 +1,7 @@
 // Controlla le regole di integrità del modello che `reqvire validate` e `reqvire lint` non coprono:
 // - requisiti, contratti e verifiche senza date né storia delle decisioni, fuori da citazioni e codice;
 // - enunciati dei requisiti e testi dei contratti senza formule non normative;
+// - contratti senza alternative né motivazioni, che stanno nei Details del requisito proprietario;
 // - ogni verifica di ispezione, analisi o dimostrazione indica «Non automatizzabile:»;
 // - ogni file di governo tracciato da Git in ciascun repository del modello è riferito dal modello.
 // Il modello è unico e comprende ogni repository dello spazio di lavoro che contiene system-model/.
@@ -36,6 +37,7 @@ const months = 'gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settem
 const history = new RegExp(`\\b\\d{4}-\\d{2}-\\d{2}\\b|\\b\\d{1,2} (?:${months}) \\d{4}\\b`
   + '|\\b(?:concordat[ao]|decis[ao]|scelt[ao])(?: con la persona)? il\\b|\\b(?:agreed|decided) on\\b', 'iu');
 const modal = /(?<![\p{L}\p{N}_])(?:può|possono|potrebbe|potrebbero|dovrebbe|dovrebbero|eventualmente|may|might|could|should|possibly)(?![\p{L}\p{N}_])/giu;
+const rationale = /\bAlternative (?:considerate|e conseguenze)\b/iu;
 const quoted = /`[^`]*`|«[^»]*»|"[^"\n]*"|“[^”]*”/gu;
 const governed = [
   /^\.github\/(?!.*\.(?:svg|png|jpe?g|gif|webp|ico)$)/,
@@ -73,6 +75,11 @@ for (const [element, text] of [
 ]) {
   for (const [word] of unquoted(text).matchAll(modal)) {
     violations.push(`formula non normativa «${word}»: ${element.name} (${element.file})`);
+  }
+}
+for (const element of contracts) {
+  if (/^#### Alternative/mu.test(element.content) || rationale.test(unquoted(element.content))) {
+    violations.push(`alternative o motivazioni nel contratto: ${element.name} (${element.file})`);
   }
 }
 for (const element of verifications.filter(element => manualTypes.includes(element.type))) {

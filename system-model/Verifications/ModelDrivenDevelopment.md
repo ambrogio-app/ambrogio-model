@@ -47,7 +47,7 @@ L'ispezione passa se il ruleset corrisponde al contratto: applicazione attiva su
 Eseguire `scripts/model-checks` sulla cartella di lavoro con tutti i repository del modello affiancati, come fanno la CI di ogni repository e l'hook pre-commit di `ambrogio-model`; ripetere con `.reqvire-version` che indica `latest`.
 
 #### Details
-La prova passa se la validazione riesce, il lint non riporta elementi `auto_fixable` né `needs_manual_review`, lo script di integrità non segnala storia delle decisioni, formule non normative, verifiche manuali senza «Non automatizzabile:» né file di governo non riferiti dal modello, il grafo fra repository non ha cicli e lo script termina con stato 0; e se con una versione mobile lo script termina con esito non riuscito senza eseguire Reqvire. Fallisce se uno dei controlli segnala una violazione, se lo script termina con stato 0 nonostante una violazione o se accetta una versione mobile.
+La prova passa se la validazione riesce, il lint non riporta elementi `auto_fixable` né `needs_manual_review`, lo script di integrità non segnala storia delle decisioni, formule non normative, contratti con alternative o motivazioni, verifiche manuali senza «Non automatizzabile:» né file di governo non riferiti dal modello, il grafo fra repository non ha cicli e lo script termina con stato 0; e se con una versione mobile lo script termina con esito non riuscito senza eseguire Reqvire. Fallisce se uno dei controlli segnala una violazione, se lo script termina con stato 0 nonostante una violazione o se accetta una versione mobile.
 
 #### Metadata
   * type: test-verification
@@ -62,6 +62,7 @@ La prova passa se la validazione riesce, il lint non riporta elementi `auto_fixa
   * verify: [Decisioni sostituite rimosse nella stessa modifica](../Requirements/ModelDrivenDevelopment.md#decisioni-sostituite-rimosse-nella-stessa-modifica)
   * verify: [File di governo collegati al modello](../Requirements/ModelDrivenDevelopment.md#file-di-governo-collegati-al-modello)
   * verify: [Formulazione normativa degli obblighi](../Requirements/ModelDrivenDevelopment.md#formulazione-normativa-degli-obblighi)
+  * verify: [Motivazioni nei dettagli del requisito](../Requirements/ModelDrivenDevelopment.md#motivazioni-nei-dettagli-del-requisito)
   * verify: [Un solo modello attraverso i repository](../Requirements/ModelDrivenDevelopment.md#un-solo-modello-attraverso-i-repository)
   * verify: [Verifiche manuali giustificate](../Requirements/ModelDrivenDevelopment.md#verifiche-manuali-giustificate)
   * verify: [Versione fissata di Reqvire](../Requirements/ModelDrivenDevelopment.md#versione-fissata-di-reqvire)
