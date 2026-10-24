@@ -46,6 +46,8 @@ Nessun client fissa una revisione del backend: la compatibilità fra release si 
 
 Origine: baseline Reqvire «External contracts recorded with their version», adattata: Ambrogio ne adotta la regola delle versioni coesistenti di un contratto come elementi distinti del repository che lo possiede; le interfacce del backend sono interne al prodotto e i client vi si collegano direttamente.
 
+Origine: baseline Reqvire «Compatibility between releases by interface version», adottata.
+
 #### Metadata
   * type: requirement
 
@@ -62,6 +64,8 @@ Quando viene eseguito un push sul branch principale, viene proposta o aggiornata
 Ogni repository di prodotto raffina questo requisito con i nomi dei propri job e i passi propri, e ne ripete i controlli in locale con il comando di verifica completo. In `ambrogio-model` la CI esegue i controlli del modello e, per una pull request, riporta l'analisi d'impatto composita nel riepilogo del job.
 
 Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: la CI lavora sul checkout affiancato dei repository del modello e comprende le prove di integrazione fra repository.
+
+Origine: baseline Reqvire «Side-by-side workspace checkout in CI», adattata: l'indirizzo del proprietario e l'elenco dei repository sono scritti in `scripts/checkout-workspace` invece che passati come parametri.
 
 #### Metadata
   * type: requirement
@@ -434,6 +438,8 @@ Le letture del modello con Reqvire si eseguono con `scripts/rv`, che usa la stes
 
 Origine: baseline Reqvire «One model per product across its repositories», adattata: `ambrogio-model` è la base del grafo e il backend non si collega ai client.
 
+Origine: baseline Reqvire «Product-wide model repository at the base of the graph», adottata.
+
 #### Metadata
   * type: requirement
 
@@ -472,7 +478,7 @@ Lo sviluppo locale, gli hook e la CI di ogni repository di Ambrogio devono esegu
 #### Details
 Il cambio di versione di Reqvire è una modifica esplicita di `ambrogio-model` che aggiorna insieme sviluppo e CI di tutti i repository. Il file `.gitignore` di `ambrogio-model` esclude dal repository la cartella `node_modules/` di un'installazione locale di Reqvire indicata con `REQVIRE`.
 
-Origine: baseline Reqvire «Pinned Reqvire version», adattata: la versione è scritta in `.reqvire-version` di `ambrogio-model` invece che alla radice della cartella di lavoro, che non è un repository.
+Origine: baseline Reqvire «Pinned Reqvire version», adattata: la versione si cerca soltanto in `.reqvire-version` di `ambrogio-model`, non alla radice della cartella di lavoro, che non è un repository, né in `.claude/settings.json`.
 
 #### Metadata
   * type: requirement
