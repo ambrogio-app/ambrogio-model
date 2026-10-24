@@ -10,6 +10,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=reqvire-workspace.sh
 . "$HERE/reqvire-workspace.sh"
 
+# Inside a Git hook, Git exports the repository of the commit; the checks read every repository.
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_COMMON_DIR
 ROOT="$(workspace_root)"
 while [ $# -gt 0 ]; do
   case "$1" in

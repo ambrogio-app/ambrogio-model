@@ -81,7 +81,9 @@ for (const element of verifications.filter(element => manualTypes.includes(eleme
   }
 }
 
-const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8' });
+// Dentro un hook Git le variabili GIT_* puntano al repository del commit: si tolgono per leggere ogni repository.
+const gitEnvironment = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
+const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', env: gitEnvironment });
 const isModelRepository = dir => {
   if (!existsSync(join(dir, 'system-model'))) return false;
   try {

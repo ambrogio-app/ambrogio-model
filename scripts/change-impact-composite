@@ -72,11 +72,16 @@ git -C "$COMP" remote add origin "$COMPOSITE_URL.git"
 git -C "$COMP" add -A >/dev/null
 git -C "$COMP" -c user.email=composite@local -c user.name=composite commit -qm base --allow-empty
 
-# Overlay the current state of every repository (deletions included).
+# Overlay the current state of every repository (deletions included). The folders of the base are
+# kept, empty when the change removed them, because Reqvire runs Git in the folder of a removed file.
 for r in "${REPOS[@]}"; do
+  DIRS="$COMP.dirs"
+  (cd "$COMP/$r" && find . -mindepth 1 -type d -not -path './.git' -not -path './.git/*' -print0) > "$DIRS"
   (cd "$COMP/$r" && find . -mindepth 1 -not -path './.git' -not -path './.git/*' -delete)
+  (cd "$COMP/$r" && xargs -0 -r mkdir -p < "$DIRS")
   (cd "$ROOT/$r" && git ls-files -co --exclude-standard -z | xargs -0 -r cp --parents -t "$COMP/$r" 2>/dev/null || true)
 done
+rm -f "$COMP.dirs"
 
 COMP_SHA="$(git -C "$COMP" rev-parse HEAD)"
 REWRITE='
