@@ -1,5 +1,37 @@
 # Elements
 
+### Adapter e trasporti provati sulla tecnologia reale
+
+Quando una garanzia di un adapter dipende da una tecnologia concreta, i test che la dimostrano devono esercitare il contratto pubblico dell'adapter contro quella tecnologia, con oracoli di lettura e di scrittura indipendenti dal codice provato, senza mock profondi e senza considerare prova il solo giro di andata e ritorno; i test di un trasporto inbound devono provare lettura, validazione, invocazione, uscita ed errori attraverso il framework reale del trasporto con un caso d'uso controllato, senza considerare prova la chiamata diretta di un gestore.
+
+#### Details
+I test dei soli mapping e quelli dell'intero confine restano livelli distinti. Si applica ai repository di prodotto con adapter o trasporti: il backend per l'archivio SQLite, il server HTTP e le sessioni WebSocket; il satellite per il canale conversazionale e i modelli ONNX; i client testuali per i propri adapter verso il backend.
+
+Origine: baseline Reqvire «Adapters tested at the real boundary», adattata: le tecnologie che richiedono periferiche fisiche, come l'audio del satellite, o servizi esterni con credenziali, come i fornitori dei modelli linguistici, si provano con dimostrazioni registrate nel modello o con l'ingresso di prova pubblico del backend invece che nella suite automatica; «Transports tested with their real framework», adattata: la regola sugli ingressi equivalenti di trasporti diversi per la stessa intenzione non si applica, perché ogni intenzione del backend ha un solo trasporto.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
+### Artefatti compilati provati come processi
+
+Per ogni punto d'ingresso eseguibile con Node.js che un repository di prodotto distribuisce, una piccola suite deve avviare l'artefatto compilato come processo e verificarne la risoluzione dei moduli, l'avvio, un'operazione riuscita rappresentativa e un fallimento, usando la persistenza reale quando l'operazione rappresentativa la attraversa, mentre le matrici dettagliate dei casi restano nei test dei singoli confini.
+
+#### Details
+L'esecuzione diretta dei sorgenti TypeScript non prova il codice distribuito. Il backend, il satellite e il client terminale raffinano questo requisito con la propria suite; la chat web è servita come file statici e non ha un punto d'ingresso Node.js.
+
+Origine: baseline Reqvire «Compiled artifacts tested as processes», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Capacità dell'ambiente fornite dalla composition root
 
 La composition root di ogni processo di Ambrogio deve scegliere e assemblare le implementazioni delle porte e le risorse tecniche, e Application deve ottenere identificativi, istanti e scadenze tramite capacità fornite dalla composition root, senza invocare direttamente generatori, orologi o timer dell'ambiente.
@@ -235,6 +267,22 @@ Origine: baseline Reqvire «Production file names by architectural role», adott
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
+### Nucleo provato dagli ingressi pubblici con fixture locali
+
+I test Domain di un componente in layer devono usare oggetti Domain reali e valori deterministici e verificare il comportamento pubblico, e i test dei casi d'uso devono costruire il caso d'uso dal suo ingresso pubblico con piccoli fake delle porte scritti nel test, senza sostituire moduli, senza container di dependency injection, database, server o rete e senza verificare dettagli privati; fixture, fake e builder dei test di ogni repository di prodotto devono essere piccoli, locali al componente o alla suite e deterministici, senza dipendere dal tempo reale, da casualità non controllata, dall'ordine dei test o da residui di altri test, e devono costruire gli oggetti business attraverso i loro ingressi pubblici di creazione o ricostruzione.
+
+#### Details
+Per ogni regola significativa del Domain i test provano un caso ammesso, un caso rifiutato e i valori di confine pertinenti. I moduli di supporto condivisi da più test di un repository restano nella sua cartella `test/support/` e non diventano un package di utilità dei test.
+
+Origine: baseline Reqvire «Core tested through public entry points», adattata: i fake delle porte registrano le chiamate anche con le funzioni registratrici del runner, come `vi.fn` di Vitest, sempre definite nel test; è esclusa la sostituzione dei moduli con `vi.mock`; «Local deterministic fixtures», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Perimetro iniziale dei segnali di osservabilità
 
 Nella prima versione ogni componente di Ambrogio deve usare come segnali di osservabilità i log tecnici strutturati, senza introdurre sistemi separati di metriche, tracing distribuito o audit degli eventi.
@@ -299,6 +347,22 @@ Origine: baseline Reqvire «Domain Application and adapter separation», adottat
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
+### Sufficienza dei test giudicata dai comportamenti
+
+La sufficienza della suite di test di ogni repository di prodotto deve essere giudicata dai comportamenti osservabili richiesti dalle verifiche del modello, e una soglia numerica globale di copertura non deve sostituire quei test né essere trattata come prova di pulizia delle risorse, di gestione degli errori o di garanzie.
+
+#### Details
+I rapporti di copertura del codice, se prodotti, sono soltanto informativi; nessun repository di prodotto dichiara una soglia di copertura nella configurazione dei test o nella CI.
+
+Origine: baseline Reqvire «Sufficiency judged by behaviours», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Suite di test con Vitest accanto al codice
 
 Ogni repository di prodotto con componenti in layer deve eseguire la propria suite automatica con Vitest come unico runner, con ogni file di test accanto al file che verifica secondo il contratto «Suite di test con Vitest», selezioni veloci, di integrazione e dei processi compilati separate e tutte comprese nel comando di verifica completo, senza che un file di test sia eseguito da più di una selezione.
@@ -325,70 +389,6 @@ Ogni client raffina questo requisito con le Contract References ai contratti del
 #### Concept References
   * [Client conversazionale](../Thesaurus/Lessico.md#client-conversazionale)
   * [Backend](../Thesaurus/Lessico.md#backend)
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
----
-
-### Adapter e trasporti provati sulla tecnologia reale
-
-Quando una garanzia di un adapter dipende da una tecnologia concreta, i test che la dimostrano devono esercitare il contratto pubblico dell'adapter contro quella tecnologia, con oracoli di lettura e di scrittura indipendenti dal codice provato, senza mock profondi e senza considerare prova il solo giro di andata e ritorno; i test di un trasporto inbound devono provare lettura, validazione, invocazione, uscita ed errori attraverso il framework reale del trasporto con un caso d'uso controllato, senza considerare prova la chiamata diretta di un gestore.
-
-#### Details
-I test dei soli mapping e quelli dell'intero confine restano livelli distinti. Si applica ai repository di prodotto con adapter o trasporti: il backend per l'archivio SQLite, il server HTTP e le sessioni WebSocket; il satellite per il canale conversazionale e i modelli ONNX; i client testuali per i propri adapter verso il backend.
-
-Origine: baseline Reqvire «Adapters tested at the real boundary», adattata: le tecnologie che richiedono periferiche fisiche, come l'audio del satellite, o servizi esterni con credenziali, come i fornitori dei modelli linguistici, si provano con dimostrazioni registrate nel modello o con l'ingresso di prova pubblico del backend invece che nella suite automatica; «Transports tested with their real framework», adattata: la regola sugli ingressi equivalenti di trasporti diversi per la stessa intenzione non si applica, perché ogni intenzione del backend ha un solo trasporto.
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
----
-
-### Artefatti compilati provati come processi
-
-Per ogni punto d'ingresso eseguibile con Node.js che un repository di prodotto distribuisce, una piccola suite deve avviare l'artefatto compilato come processo e verificarne la risoluzione dei moduli, l'avvio, un'operazione riuscita rappresentativa e un fallimento, usando la persistenza reale quando l'operazione rappresentativa la attraversa, mentre le matrici dettagliate dei casi restano nei test dei singoli confini.
-
-#### Details
-L'esecuzione diretta dei sorgenti TypeScript non prova il codice distribuito. Il backend, il satellite e il client terminale raffinano questo requisito con la propria suite; la chat web è servita come file statici e non ha un punto d'ingresso Node.js.
-
-Origine: baseline Reqvire «Compiled artifacts tested as processes», adottata.
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
----
-
-### Nucleo provato dagli ingressi pubblici con fixture locali
-
-I test Domain di un componente in layer devono usare oggetti Domain reali e valori deterministici e verificare il comportamento pubblico, e i test dei casi d'uso devono costruire il caso d'uso dal suo ingresso pubblico con piccoli fake delle porte scritti nel test, senza sostituire moduli, senza container di dependency injection, database, server o rete e senza verificare dettagli privati; fixture, fake e builder dei test di ogni repository di prodotto devono essere piccoli, locali al componente o alla suite e deterministici, senza dipendere dal tempo reale, da casualità non controllata, dall'ordine dei test o da residui di altri test, e devono costruire gli oggetti business attraverso i loro ingressi pubblici di creazione o ricostruzione.
-
-#### Details
-Per ogni regola significativa del Domain i test provano un caso ammesso, un caso rifiutato e i valori di confine pertinenti. I moduli di supporto condivisi da più test di un repository restano nella sua cartella `test/support/` e non diventano un package di utilità dei test.
-
-Origine: baseline Reqvire «Core tested through public entry points», adattata: i fake delle porte registrano le chiamate anche con le funzioni registratrici del runner, come `vi.fn` di Vitest, sempre definite nel test; è esclusa la sostituzione dei moduli con `vi.mock`; «Local deterministic fixtures», adottata.
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
----
-
-### Sufficienza dei test giudicata dai comportamenti
-
-La sufficienza della suite di test di ogni repository di prodotto deve essere giudicata dai comportamenti osservabili richiesti dalle verifiche del modello, e una soglia numerica globale di copertura non deve sostituire quei test né essere trattata come prova di pulizia delle risorse, di gestione degli errori o di garanzie.
-
-#### Details
-I rapporti di copertura del codice, se prodotti, sono soltanto informativi; nessun repository di prodotto dichiara una soglia di copertura nella configurazione dei test o nella CI.
-
-Origine: baseline Reqvire «Sufficiency judged by behaviours», adottata.
 
 #### Metadata
   * type: requirement
