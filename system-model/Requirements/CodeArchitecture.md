@@ -28,6 +28,23 @@ Origine: baseline Reqvire «Use-case data independent of inbound formats», adot
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
+### Costruzione separata dall'attivazione
+
+La costruzione di un ingresso di un processo di servizio di Ambrogio deve restituire le capacità utilizzabili dell'ingresso e una funzione di chiusura senza avviarne l'attivazione esterna, come l'ascolto su una porta o l'acquisizione dal microfono, e l'entrypoint del processo deve coordinare l'attivazione e l'esito del processo.
+
+#### Details
+Origine: baseline Reqvire «Construction separate from activation», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Ciclo di vita dei processi di servizio con Node.js](../Contracts/HomelabInstallation.md#ciclo-di-vita-dei-processi-di-servizio-con-nodejs)
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Diagnosi definitiva unica dei guasti inattesi
 
 Quando un guasto inatteso raggiunge il confine tecnico che ne decide l'esito, quel confine deve emettere al massimo una diagnosi definitiva, con l'`Error` che rappresenta il guasto nel campo `err` serializzato senza modificare l'errore originale né la sua catena di cause, e i componenti intermedi che lo propagano non devono registrarlo.
@@ -158,6 +175,22 @@ Origine: baseline Reqvire «Technical independence of Domain and Application», 
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
+### Interfaccia minima del logger con un solo logger di base
+
+I componenti tecnici di Ambrogio che registrano eventi diagnostici devono ricevere un'interfaccia strutturale minima del logger con `debug`, `info`, `warn`, `error` e la creazione di un logger derivato con campi fissi, senza dipendere dall'API della libreria di logging; la composition root di ogni processo deve creare e condividere un solo logger di base per l'intero grafo del processo, un logger derivato deve aggiungere contesto senza modificare il logger di base né un altro logger derivato, e la configurazione del logger di base deve oscurare i valori dei campi dal nome sensibile.
+
+#### Details
+Il backend e il satellite raffinano questo requisito con il proprio logger di base. Domain e casi d'uso restano senza logger secondo «Domain e casi d'uso senza logger».
+
+Origine: baseline Reqvire «Minimal logger interface with one base logger», adattata: l'oscuramento riconosce i campi sensibili dallo schema del nome a ogni profondità invece che da un elenco di percorsi, per coprire i nomi delle variabili delle credenziali scelti da chi installa.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Log affidati al deployment
 
 Quando un'installazione richiede raccolta, conservazione o inoltro dei log tecnici, queste funzioni devono essere configurate nel deployment, senza integrare nel codice dei componenti archivi o servizi di raccolta specifici.
@@ -226,6 +259,22 @@ Ogni repository di prodotto con regole di architettura sugli import deve tenerle
 Si applica al backend e al satellite, che hanno componenti in layer; ciascuno raffina questo requisito con il contratto che elenca i nomi delle proprie regole e le eccezioni ammesse. Una violazione fa fallire la suite di test, quindi la CI e il comando di verifica completo.
 
 Origine: baseline Reqvire «Central blocking architecture rules», adattata: le regole sono controlli della suite Vitest sul testo dei sorgenti invece della configurazione di dependency-cruiser.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
+### Serializzazione controllata di err
+
+Quando il logger di un componente di Ambrogio emette la riga JSON di un log diagnostico definitivo, la riga deve contenere una rappresentazione del campo `err` conforme al profilo controllato di serializzazione, che mostra tipo, messaggio e stack soltanto per gli errori costruiti dal progetto e una descrizione costante per ogni altro valore.
+
+#### Details
+Il backend e il satellite raffinano questo requisito con la propria classe di errore del progetto e la propria descrizione costante.
+
+Origine: baseline Reqvire «Controlled serialization of err», adattata: l'errore del progetto che raccoglie i guasti indipendenti del ciclo di vita mostra anche le viste dei guasti raccolti.
 
 #### Metadata
   * type: requirement

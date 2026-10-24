@@ -16,6 +16,22 @@ Origine: baseline Reqvire «Declared runtime environment», adottata.
   * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
 ---
 
+### Arresto unico, ordinato e limitato nel tempo
+
+Ogni processo di servizio di Ambrogio deve avviare un solo percorso di arresto anche quando riceve richieste di arresto ripetute, deve fermare il nuovo lavoro prima di chiudere le risorse da cui quel lavoro dipende, deve tentare la chiusura di ogni risorsa posseduta esattamente una volta, in ordine inverso di acquisizione, tentando le altre chiusure quando una fallisce, e deve applicare all'arresto un tempo massimo esplicito, misurato dall'inizio della chiusura, comprensivo dell'attesa del lavoro in corso e della pulizia e non riavviato da nuove richieste o per ciascuna risorsa; alla scadenza deve terminare con esito non riuscito conservando i guasti già osservati, senza dichiarare conclusi, annullati o ripetibili effetti dall'esito incerto, e il supervisore del deployment deve concedere almeno quella finestra. La composition root non deve delegare la chiusura delle proprie risorse ai loro consumatori.
+
+#### Details
+I processi di servizio sono il backend e il satellite vocale; ciascuno raffina questo requisito con il proprio tempo massimo e con la finestra dichiarata nei propri esempi di deployment. Con Docker la finestra concessa dal supervisore è il periodo di arresto del container: `stop_grace_period` in Docker Compose, `--stop-timeout` di `docker run` o `--time` di `docker stop`, con valore predefinito di 10 secondi; scaduta la finestra Docker termina il processo con `SIGKILL`. Il lavoro in corso all'arresto è interrotto secondo i requisiti del repository, non atteso fino al completamento.
+
+Origine: baseline Reqvire «Single ordered shutdown», adottata; «Bounded shutdown window», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
 ### Caricamento esplicito del file d'ambiente locale
 
 Quando lo sviluppo di un processo di servizio di Ambrogio usa un file d'ambiente locale, il comando di sviluppo deve caricarlo esplicitamente, i valori già presenti nell'ambiente del processo devono prevalere su quelli del file, l'applicazione non deve caricare file d'ambiente da sé, e il repository deve fornire un file d'esempio con i nomi delle variabili e i soli valori approvati; il file d'ambiente effettivo non deve essere versionato.
@@ -49,6 +65,41 @@ Origine: baseline Reqvire «Actual configuration files kept out of artifacts», 
   * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
 ---
 
+### Diagnostica del mancato avvio
+
+Se la preparazione o l'attivazione di un processo di servizio di Ambrogio falliscono prima che il processo sia operativo, il processo deve emettere un solo log diagnostico definitivo che identifica la causa del mancato avvio senza riprodurre valori segreti, segnalare il mancato avvio su stderr e terminare con un codice di uscita non riuscito.
+
+#### Details
+Il backend è operativo quando è in ascolto, il satellite quando attende la wake word. Ogni repository raffina questo requisito con l'evento, la riga su stderr e i messaggi fissi che nominano la fase fallita; la causa è resa identificabile da un errore del progetto con un messaggio fisso della fase, secondo «Serializzazione controllata di err». Un rifiuto della configurazione che un repository tratta come esito previsto, con un evento e un codice di uscita propri, resta regolato dai requisiti di quel repository.
+
+Origine: baseline Reqvire «Startup failure diagnostics», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
+### Esito del ciclo di vita conservato nei guasti
+
+Quando l'avvio, il lavoro o la pulizia di un processo di servizio di Ambrogio falliscono, il processo deve conservare l'esito già determinato, senza riscrivere una risposta già inviata né promettere di annullarne gli effetti, deve dichiarare fallito il ciclo di vita quando il lavoro è riuscito ma la pulizia è fallita, e deve mantenere distinti, per identità e nell'ordine in cui sono osservati, i guasti indipendenti, senza presentarli come cause l'uno dell'altro.
+
+#### Details
+Gli esiti previsti e gli errori d'uso restano fuori dalla raccolta dei guasti tecnici; per un guasto è emesso al massimo un log diagnostico definitivo, secondo «Diagnosi definitiva unica dei guasti inattesi».
+
+Origine: baseline Reqvire «Lifecycle outcome preserved across failures», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Ciclo di vita dei processi di servizio con Node.js](../Contracts/HomelabInstallation.md#ciclo-di-vita-dei-processi-di-servizio-con-nodejs)
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
 ### Modulo di configurazione per componente dalle variabili d'ambiente
 
 Ogni componente configurabile di un processo di servizio di Ambrogio deve avere un proprio modulo di configurazione TypeScript, parte della build, che legge i valori dalle variabili d'ambiente del processo e li valida con lo schema del componente; il modulo non deve contenere valori effettivi, chi installa deve fornire i valori come variabili d'ambiente senza eseguire codice proprio, e il processo deve leggere la configurazione una sola volta all'avvio, prima di attivare i componenti dell'ingresso che avvia.
@@ -60,6 +111,23 @@ Origine: baseline Reqvire «Configuration module per component reading environme
 
 #### Metadata
   * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
+### Percorso fatale separato
+
+Gli errori che sfuggono a ogni confine controllato di un processo di servizio di Ambrogio devono seguire un percorso fatale distinto dai guasti catturati, nel quale il confine di processo tenta di scrivere su stderr un messaggio di emergenza fisso e sicuro, senza ispezionare né serializzare il valore sollevato, e poi termina con esito non riuscito, senza continuare il servizio, avviare casi d'uso, registrare log ordinari, ritentare o eseguire pulizie asincrone e senza promettere il ripristino o la pulizia delle operazioni interrotte; i runner e le composition root non devono inviare al percorso fatale i guasti catturati.
+
+#### Details
+Origine: baseline Reqvire «Separate fatal path», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Ciclo di vita dei processi di servizio con Node.js](../Contracts/HomelabInstallation.md#ciclo-di-vita-dei-processi-di-servizio-con-nodejs)
 
 #### Relations
   * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)

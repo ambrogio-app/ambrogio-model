@@ -23,6 +23,36 @@ Motivazione: Martin Fowler sostiene una politica coerente dei nomi dei ruoli e l
   * define: [Nomi dei file secondo il ruolo architetturale](../Requirements/CodeArchitecture.md#nomi-dei-file-secondo-il-ruolo-architetturale)
 ---
 
+### Profilo controllato di serializzazione di err
+
+La rappresentazione JSON di `err` è una vista composta soltanto da campi ammessi esplicitamente dal serializzatore registrato in `serializers.err` della configurazione Pino del logger di base. Gli errori costruiti dal progetto usano una sottoclasse `Error` dedicata del componente, `ProjectError`, riconosciuta dal serializzatore: la loro vista contiene `type`, `message` e `stack`. La sottoclasse di `ProjectError` che raccoglie guasti indipendenti del ciclo di vita, `LifecycleError`, aggiunge `faults`, l'elenco ordinato delle viste dei guasti raccolti secondo questo stesso profilo.
+
+Gli errori ricevuti da driver, SDK, provider o librerie conservano in memoria il tipo originale e, come ogni valore lanciato sconosciuto, ricevono la vista costante `{ "type": "Error", "message": <descrizione costante del componente>, "stack": "[redacted]" }`, indipendente dal valore ricevuto, senza copiarne messaggio, stack o proprietà aggiuntive. La catena `cause` non è serializzata. Il serializzatore restituisce un nuovo oggetto e non modifica l'`Error` ricevuto né gli oggetti della sua catena `cause`.
+
+La normalizzazione diagnostica al confine conserva l'identità di ogni `Error` ricevuto e rappresenta un valore non `Error` con un nuovo `Error` privo del tipo del progetto; il tipo del progetto non è mai applicato a un guasto esterno o sconosciuto. I messaggi degli errori del progetto non contengono valori letti dall'ambiente o da file, URL, credenziali, token o chiavi: nominano la fase, la risorsa, la variabile o l'identificativo configurato interessati.
+
+#### Metadata
+  * type: input-output
+
+#### Relations
+  * define: [Serializzazione controllata di err](../Requirements/CodeArchitecture.md#serializzazione-controllata-di-err)
+---
+
+### Profilo del logger con Pino
+
+L'interfaccia minima del logger è un tipo TypeScript strutturale dichiarato dal codice di Ambrogio: i metodi `debug`, `info`, `warn` ed `error` ricevono un oggetto di campi selezionati e, facoltativamente, un messaggio breve controllato dal codice; il metodo `child` riceve campi fissi e restituisce un nuovo logger con la stessa interfaccia. I componenti che la ricevono non importano tipi o valori di Pino né il logger di un framework che incorpora Pino.
+
+L'entrypoint di ogni processo crea con Pino il logger di base una sola volta e la composition root lo passa ai componenti che ne hanno bisogno, oppure passa loro un logger derivato con il contesto di una richiesta o di una sessione; nessun modulo crea un proprio logger Pino o importa un'istanza globale. Il logger fornisce timestamp e livello e omette i campi assenti. La configurazione Pino imposta `errorKey` su una chiave che nessun evento usa: altrimenti, per un evento con `err` e senza messaggio, Pino copierebbe in `msg` il messaggio dell'errore, aggirando la vista controllata di `err`, che resta applicata dal serializzatore del campo `err`.
+
+La configurazione Pino del logger di base sostituisce con `[redacted]` il valore di ogni campo il cui nome contiene, senza distinguere maiuscole e minuscole, `token`, `password`, `passwd`, `secret`, `authorization`, `cookie`, `credential`, `apikey`, `api_key` o `api-key`, a ogni profondità degli oggetti e degli array semplici dei campi di un evento e dei campi fissi di un logger derivato, senza modificare gli oggetti originali e senza attraversare le istanze di `Error`, che seguono il profilo controllato di serializzazione di `err`. Lo schema comprende i nomi delle variabili d'ambiente delle credenziali, come `MISTRAL_API_KEY`. L'oscuramento è una protezione aggiuntiva dopo la selezione esplicita dei campi e non la sostituisce. Motivazione: le variabili delle credenziali hanno nomi scelti da chi installa, per esempio con `apiKeyEnv` negli agenti del backend, e un elenco di percorsi fissi non le copre.
+
+#### Metadata
+  * type: specification
+
+#### Relations
+  * define: [Interfaccia minima del logger con un solo logger di base](../Requirements/CodeArchitecture.md#interfaccia-minima-del-logger-con-un-solo-logger-di-base)
+---
+
 ### Suite di test con Vitest
 
 Ogni file di test TypeScript termina con `.spec.ts` e risiede nella cartella `src/` del file sorgente che verifica, accanto a quel file. Il nome del test è il nome del file verificato senza l'estensione `.ts`, seguito, quando più file di test verificano lo stesso file, da un aspetto separato da un punto e infine da `.spec.ts`: per esempio `exchange-turn.use-case.spec.ts` verifica `exchange-turn.use-case.ts` e `conversation-server.session-lifecycle.spec.ts` verifica `conversation-server.ts`. Un file di test verifica un solo file sorgente, attraverso le sue interfacce; le prove di più file sorgenti si dividono in un file di test per ciascuno.
