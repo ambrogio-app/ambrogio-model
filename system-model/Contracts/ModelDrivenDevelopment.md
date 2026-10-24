@@ -135,7 +135,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 - «Unit of Work»: nessun caso d'uso richiede l'atomicità di più operazioni di porta; ogni transizione persistente è una sola operazione della porta di scrittura.
 
 #### Decisioni esaminate e non adottate
-- «External contracts recorded with their version»: la registrazione dei contratti esterni allo spazio di lavoro come elementi `source` con versione non è adottata, e le versioni coesistenti di un contratto interno come elementi distinti sono escluse da «Compatibilità fra release per versione d'interfaccia»: le interfacce del backend non hanno versioni coesistenti e un cambio incompatibile si fa insieme ai client che le usano.
+- «External contracts recorded with their version»: le versioni coesistenti di un contratto interno come elementi distinti sono escluse da «Compatibilità fra release per versione d'interfaccia», perché backend e client cambiano e si rilasciano insieme; la registrazione dei contratti esterni allo spazio di lavoro come elementi `source` con la loro versione non è registrata nel modello e attende una decisione della persona.
 - «Drain of accepted requests on shutdown»: all'arresto i turni in corso sono interrotti, secondo «Interruption of active operations on shutdown».
 - «OpenAPI contract generated from the routes»: non adottata per decisione della persona; l'API HTTP pubblica è descritta dai contratti del modello e dal riferimento delle API HTTP di `ambrogio-docs`, il protocollo dallo schema JSON pubblicato.
 - «MCP for model authoring and CLI for repeatable checks»: il modello si legge e si modifica soltanto con la CLI Reqvire.
