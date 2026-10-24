@@ -6,7 +6,7 @@ I casi d'uso, le porte e gli adapter usano suffissi di ruolo, mantenendo nel nom
 
 Un file che realizza un caso d'uso Application si chiama `<azione>.use-case.ts`, con un nome che descrive l'operazione offerta. Il criterio vale anche per casi d'uso che non espongono rifiuti previsti.
 
-Un file che dichiara una porta Application si chiama `<capacità>.port.ts`, con un nome che descrive la capacità richiesta dai casi d'uso, per esempio `conversation-write.port.ts`. Una porta dichiarata nel file di un caso d'uso va spostata nel proprio file `.port.ts`; i dati di ingresso e di uscita del caso d'uso, compresi i callback forniti dal chiamante, restano nel file del caso d'uso.
+Un file che dichiara una porta Application si chiama `<capacità>.port.ts`, con un nome che descrive la capacità richiesta dai casi d'uso, per esempio `conversation-history-read.port.ts`. Una porta dichiarata nel file di un caso d'uso va spostata nel proprio file `.port.ts`; i dati di ingresso e di uscita del caso d'uso, compresi i callback forniti dal chiamante, restano nel file del caso d'uso.
 
 Un file che realizza un adapter si chiama `<funzione-o-integrazione>.adapter.ts`. Sono adapter di ingresso i componenti che traducono eventi o richieste esterne in invocazioni di Application; sono adapter di uscita i componenti che realizzano una porta Application tramite una tecnologia concreta. La realizzazione è indifferentemente una classe, una funzione o un oggetto fornito dalla composition root: non dipende dalla presenza della parola TypeScript `implements`.
 

@@ -71,11 +71,9 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 
 #### Decisioni esaminate e non adottate
 - «Drain of accepted requests on shutdown»: all'arresto i turni in corso sono interrotti, secondo «Interruption of active operations on shutdown».
-- «Separate migration process»: le migrazioni dell'archivio sono applicate all'avvio del backend, secondo «Automatic schema migrations at startup».
 - «OpenAPI contract generated from the routes»: il contratto pubblico è descritto nel modello e nello schema JSON del protocollo, senza pubblicazione OpenAPI.
 - «MCP for model authoring and CLI for repeatable checks»: il modello si legge e si modifica soltanto con la CLI Reqvire.
 - «Protected HTTP surface by default»: rimandata con la decisione separata sull'autenticazione; oggi l'accesso al backend è limitato dalla rete dell'installazione e dal reverse proxy.
-- «Immutable Value Objects with explicit equality» e «Value Object for meaningful values»: il Domain non ha concetti con regole proprie confrontati per valore.
 - «No save after refused creation»: la creazione di un turno non prevede rifiuti; i dati non validi sono rifiutati prima del Domain.
 - «References between aggregates by identity»: il Domain ha un solo tipo di aggregato.
 - «Independent graph per process»: ogni componente esegue un solo processo.
