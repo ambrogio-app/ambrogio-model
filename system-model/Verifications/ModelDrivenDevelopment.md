@@ -186,10 +186,10 @@ L'ispezione passa se ogni `AGENTS.md` è riferito dal modello, se le istruzioni 
 
 ### Ispezione delle versioni d'interfaccia di una release
 
-Alla preparazione di ogni release di un repository di prodotto, confrontare le versioni del protocollo conversazionale e dell'API HTTP pubblica dichiarate dalla release con i contratti del backend e con `ambrogio-docs/reference/versions.md`, e confrontare i contratti del backend modificati dalla release precedente.
+Alla preparazione di ogni release di un repository di prodotto, confrontare le versioni del protocollo conversazionale e dell'API HTTP pubblica dichiarate dalla release con i contratti del backend e con `ambrogio-docs/reference/versions.md`, e confrontare i contratti delle interfacce pubbliche del backend modificati dalla release precedente con le modifiche dei client che le usano.
 
 #### Details
-L'ispezione passa se la release dichiara le versioni d'interfaccia offerte o usate, la tabella della documentazione le riporta, e ogni cambio incompatibile di un'interfaccia pubblica ha introdotto una nuova versione maggiore lasciando la precedente come elemento distinto finché un client la usa. Fallisce se una versione manca, se la tabella non corrisponde o se un cambio incompatibile modifica una versione esistente. Non automatizzabile: stabilire se una modifica di un contratto è incompatibile richiede di leggerne il significato.
+L'ispezione passa se la release dichiara le versioni d'interfaccia offerte o usate; se la tabella della documentazione le riporta e indica quali release funzionano insieme; se ogni cambio incompatibile di un'interfaccia pubblica è fatto nella stessa modifica dei client che la usano, rilasciati insieme al backend, e cambia la versione maggiore nel nome dell'interfaccia quando il nome la porta; e se il modello e il codice del backend non conservano versioni precedenti di un'interfaccia. Fallisce se una versione manca, se la tabella non corrisponde, se un cambio incompatibile lascia un client che usa l'interfaccia senza aggiornamento o mantiene la versione maggiore nel nome, o se resta una versione precedente. Non automatizzabile: stabilire se una modifica di un contratto è incompatibile richiede di leggerne il significato.
 
 #### Metadata
   * type: inspection-verification
