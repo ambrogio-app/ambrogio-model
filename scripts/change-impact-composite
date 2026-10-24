@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# change-impact-composite — Reqvire change impact for a workspace made of one or several Git repositories.
+#
+# Reqvire's `change-impact --git-commit` compares against the history of one Git worktree that has a
+# remote. This tool covers the other cases by building a temporary composite repository:
+#   1. commit = each repository at its base: merge-base of HEAD and origin/<base-branch>, else
+#      merge-base with the local <base-branch>, else HEAD (uncommitted changes only)
+#   2. working tree = each repository's current state (tracked + untracked, honouring .gitignore)
+# then runs `reqvire change-impact --git-commit HEAD` on the composite and rewrites the links of the
+# report from the composite back to the real repositories (remote URL at the base commit, or a
+# workspace-relative path when the repository has no remote).
+# A workspace that is one repository with a remote is compared directly, without a composite.
+# The workspace defaults to the folder that contains ambrogio-model.
+#
+# Usage: change-impact-composite [--workspace DIR] [--base-branch main] [--json] [--keep]
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=reqvire-workspace.sh
+. "$HERE/reqvire-workspace.sh"
+
+ROOT="$(workspace_root)"; BASE_BRANCH="main"; JSON=""; KEEP=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --workspace) ROOT="$(workspace_root "$2")"; shift 2 ;;
+    --base-branch) BASE_BRANCH="$2"; shift 2 ;;
+    --json) JSON="--json"; shift ;;
+    --keep) KEEP=1; shift ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+reqvire_cmd
+
+base_of() {  # base_of REPO_DIR -> base commit sha, or empty for a repository without commits
+  local r="$1"
+  if git -C "$r" rev-parse -q --verify "origin/$BASE_BRANCH" >/dev/null; then git -C "$r" merge-base HEAD "origin/$BASE_BRANCH"
+  elif git -C "$r" rev-parse -q --verify "refs/heads/$BASE_BRANCH" >/dev/null; then git -C "$r" merge-base HEAD "$BASE_BRANCH"
+  elif git -C "$r" rev-parse -q --verify HEAD >/dev/null; then git -C "$r" rev-parse HEAD
+  fi
+}
+
+mapfile -t REPOS < <(workspace_worktrees "$ROOT")
+[ ${#REPOS[@]} -gt 0 ] || { echo "no git repository in or under $ROOT" >&2; exit 1; }
+
+remote_url() {  # remote_url REPO_DIR -> origin URL without .git when it is a URL Reqvire can render, else empty
+  local url; url="$(git -C "$1" config remote.origin.url 2>/dev/null || true)"
+  case "$url" in https://*|http://*|git@*|ssh://*) echo "${url%.git}" ;; esac
+}
+
+if [ "${REPOS[0]}" = "." ] && [ -n "$(remote_url "$ROOT")" ]; then
+  base="$(base_of "$ROOT")"   # single repository with a remote URL: Reqvire compares it directly
+  exec "${REQVIRE_CMD[@]}" --workspace "$ROOT" change-impact --git-commit "${base:-HEAD}" $JSON
+fi
+
+COMP="$(mktemp -d)"
+if [ -n "$KEEP" ]; then echo "composite kept at $COMP" >&2; else trap 'rm -rf "$COMP"' EXIT; fi
+git -C "$COMP" init -q -b main
+
+MAP="$COMP.map"; : > "$MAP"   # lines: repo<TAB>remote-url<TAB>base-sha   (repo "." = the workspace itself)
+ORG_URL=""
+for r in "${REPOS[@]}"; do
+  R="$ROOT/$r"
+  url="$(remote_url "$R")"
+  [ -z "$ORG_URL" ] && [ -n "$url" ] && ORG_URL="${url%/*}"
+  base="$(base_of "$R")"
+  mkdir -p "$COMP/$r"
+  [ -n "$base" ] && git -C "$R" archive "$base" | tar -x -C "$COMP/$r"
+  printf '%s\t%s\t%s\n' "$r" "$url" "$base" >> "$MAP"
+  echo "base ${r#.} = $([ -n "$base" ] && echo "${base:0:7}" || echo "(no commits)")" >&2
+done
+COMPOSITE_URL="${ORG_URL:-https://composite.invalid}/__composite__"
+git -C "$COMP" remote add origin "$COMPOSITE_URL.git"
+git -C "$COMP" add -A >/dev/null
+git -C "$COMP" -c user.email=composite@local -c user.name=composite commit -qm base --allow-empty
+
+# Overlay the current state of every repository (deletions included). The folders of the base are
+# kept, empty when the change removed them, because Reqvire runs Git in the folder of a removed file.
+for r in "${REPOS[@]}"; do
+  DIRS="$COMP.dirs"
+  (cd "$COMP/$r" && find . -mindepth 1 -type d -not -path './.git' -not -path './.git/*' -print0) > "$DIRS"
+  (cd "$COMP/$r" && find . -mindepth 1 -not -path './.git' -not -path './.git/*' -delete)
+  (cd "$COMP/$r" && xargs -0 -r mkdir -p < "$DIRS")
+  (cd "$ROOT/$r" && git ls-files -co --exclude-standard -z | xargs -0 -r cp --parents -t "$COMP/$r" 2>/dev/null || true)
+done
+rm -f "$COMP.dirs"
+
+COMP_SHA="$(git -C "$COMP" rev-parse HEAD)"
+REWRITE='
+# Rewrite composite links to the real repositories:
+#   <composite>/blob/<sha>/<repo>/<path> -> <repo-url>/blob/<base>/<path>, or <repo>/<path> without remote.
+import re, sys
+map_file, composite_url, composite_sha = sys.argv[1:4]
+repos = {}
+for line in open(map_file):
+    repo, url, base = line.rstrip("\n").split("\t")
+    repos[repo] = (url, base)
+prefix = re.escape(composite_url) + "/blob/" + re.escape(composite_sha) + "/"
+def repl(m):
+    repo = "." if "." in repos else m.group(1)
+    if repo not in repos:
+        return m.group(0)
+    url, base = repos[repo]
+    tail = "" if repo == "." else repo + "/"
+    return (url + "/blob/" + base + "/") if url else tail
+pattern = re.compile(prefix + ("" if "." in repos else r"([^/\s)\"]+)/"))
+sys.stdout.write(pattern.sub(repl, sys.stdin.read()))
+'
+"${REQVIRE_CMD[@]}" --workspace "$COMP" change-impact --git-commit HEAD $JSON \
+  | python3 -I -c "$REWRITE" "$MAP" "$COMPOSITE_URL" "$COMP_SHA"
+rm -f "$MAP"
