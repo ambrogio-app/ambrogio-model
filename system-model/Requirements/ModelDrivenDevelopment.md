@@ -1,5 +1,42 @@
 # Elements
 
+### Audit delle vulnerabilità delle dipendenze
+
+Quando viene eseguito un push sul branch principale o viene proposta o aggiornata una pull request, la CI di ogni repository di prodotto deve controllare le dipendenze del lockfile rispetto alle vulnerabilità note e deve fallire se trova una vulnerabilità di gravità alta o critica che non è elencata individualmente, con il proprio identificativo e il motivo, fra le eccezioni accettate del modello.
+
+#### Details
+Prima di accettare un'eccezione si aggiorna la dipendenza vulnerabile, anche transitiva, a una versione corretta compatibile con gli intervalli dichiarati. Ogni repository di prodotto raffina questo requisito con il proprio job e la relativa prova; il comando di verifica completo ripete l'audit in locale.
+
+Origine: baseline Reqvire «Dependency vulnerability audit», adattata: senza l'esecuzione notturna programmata, per decisione della persona; un nuovo avviso emerge al primo push o alla prima pull request successivi; le prove dei repository controllano il comando e la configurazione dell'audit senza interrogare il registro, che soltanto la CI e il comando di verifica completo consultano.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Comando di verifica completo
+
+Ogni repository di prodotto deve offrire un unico comando che esegue in locale, nell'ordine della CI del repository, i controlli dell'intero modello, l'installazione congelata delle dipendenze, l'audit delle dipendenze, il controllo TypeScript, la suite di test, la build e, nei client, la preparazione del backend affiancato e le prove di integrazione contro di esso; il comando deve terminare con esito non riuscito al primo controllo fallito o quando manca una risorsa richiesta, come `ambrogio-model` o il backend affiancato o gitleaks, senza saltare in silenzio un controllo.
+
+#### Details
+Il comando permette di eseguire prima di un push gli stessi controlli della CI secondo «Controlli prima dell'integrazione». Le regole di architettura con le loro fixture negative fanno parte della suite di test.
+
+Origine: baseline Reqvire «Complete verification command», adattata: i passi sono quelli della CI di ciascun repository; Ambrogio non ha un linter del codice né suite su un database esterno, e le regole di architettura girano nella suite di test.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Audit delle dipendenze con pnpm](../Contracts/ModelDrivenDevelopment.md#audit-delle-dipendenze-con-pnpm)
+  * [Controlli del modello dello spazio di lavoro](../Contracts/ModelDrivenDevelopment.md#controlli-del-modello-dello-spazio-di-lavoro)
+  * [Profilo di installazione con pnpm e Corepack](../Contracts/ModelDrivenDevelopment.md#profilo-di-installazione-con-pnpm-e-corepack)
+
+#### Relations
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Compatibilità fra release per versione d'interfaccia
 
 Ogni release del backend deve dichiarare le versioni del protocollo conversazionale e dell'API HTTP pubblica che offre, e ogni release di un client quelle che usa; un cambio incompatibile di un'interfaccia pubblica del backend deve introdurre una nuova versione maggiore di quell'interfaccia, mantenendo la versione precedente come elemento distinto del modello del backend finché un client la usa.
@@ -282,6 +319,25 @@ Origine: baseline Reqvire «Normative wording of obligations», adattata: le for
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
+### Installazione delle dipendenze con pnpm attivato da Corepack
+
+Ogni repository di prodotto deve installare le proprie dipendenze con pnpm alla versione esatta dichiarata nel campo `packageManager` del proprio `package.json`, dal lockfile versionato e senza modificarlo; la CI e la build delle immagini container devono attivare quella versione di pnpm con Corepack, senza installarne un'altra.
+
+#### Details
+Ogni repository di prodotto raffina questo requisito con la propria versione di pnpm e le proprie regole di installazione. In sviluppo si usa la stessa versione esatta di pnpm, attivata con Corepack o installata separatamente. Un repository che prepara un altro repository affiancato, come il backend nella CI dei client, esegue pnpm nella cartella di quel repository, così che Corepack usi la versione dichiarata da quel repository.
+
+Origine: baseline Reqvire «pnpm as package manager», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Profilo comune dei workflow GitHub Actions](../Contracts/ModelDrivenDevelopment.md#profilo-comune-dei-workflow-github-actions)
+
+#### Relations
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Modello modificato soltanto con la CLI Reqvire
 
 Ogni lettura, modifica e controllo del modello di Ambrogio, in locale e in CI, deve avvenire con la CLI Reqvire eseguita sulla cartella di lavoro, senza server MCP Reqvire; quando la CLI non offre l'operazione richiesta, la modifica diretta dei file Markdown del modello deve essere seguita da `format`, `validate` e `lint`.
@@ -458,61 +514,5 @@ Origine: baseline Reqvire «Least-privilege workflow token», adottata; «Workfl
 #### Relations
   * satisfiedBy: [ci.yml](../../.github/workflows/ci.yml)
   * satisfiedBy: [secret-scan.yml](../../.github/workflows/secret-scan.yml)
-  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
----
-
-### Audit delle vulnerabilità delle dipendenze
-
-Quando viene eseguito un push sul branch principale o viene proposta o aggiornata una pull request, la CI di ogni repository di prodotto deve controllare le dipendenze del lockfile rispetto alle vulnerabilità note e deve fallire se trova una vulnerabilità di gravità alta o critica che non è elencata individualmente, con il proprio identificativo e il motivo, fra le eccezioni accettate del modello.
-
-#### Details
-Prima di accettare un'eccezione si aggiorna la dipendenza vulnerabile, anche transitiva, a una versione corretta compatibile con gli intervalli dichiarati. Ogni repository di prodotto raffina questo requisito con il proprio job e la relativa prova; il comando di verifica completo ripete l'audit in locale.
-
-Origine: baseline Reqvire «Dependency vulnerability audit», adattata: senza l'esecuzione notturna programmata, per decisione della persona; un nuovo avviso emerge al primo push o alla prima pull request successivi; le prove dei repository controllano il comando e la configurazione dell'audit senza interrogare il registro, che soltanto la CI e il comando di verifica completo consultano.
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
----
-
-### Installazione delle dipendenze con pnpm attivato da Corepack
-
-Ogni repository di prodotto deve installare le proprie dipendenze con pnpm alla versione esatta dichiarata nel campo `packageManager` del proprio `package.json`, dal lockfile versionato e senza modificarlo; la CI e la build delle immagini container devono attivare quella versione di pnpm con Corepack, senza installarne un'altra.
-
-#### Details
-Ogni repository di prodotto raffina questo requisito con la propria versione di pnpm e le proprie regole di installazione. In sviluppo si usa la stessa versione esatta di pnpm, attivata con Corepack o installata separatamente. Un repository che prepara un altro repository affiancato, come il backend nella CI dei client, esegue pnpm nella cartella di quel repository, così che Corepack usi la versione dichiarata da quel repository.
-
-Origine: baseline Reqvire «pnpm as package manager», adottata.
-
-#### Metadata
-  * type: requirement
-
-#### Contract References
-  * [Profilo comune dei workflow GitHub Actions](../Contracts/ModelDrivenDevelopment.md#profilo-comune-dei-workflow-github-actions)
-
-#### Relations
-  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
----
-
-### Comando di verifica completo
-
-Ogni repository di prodotto deve offrire un unico comando che esegue in locale, nell'ordine della CI del repository, i controlli dell'intero modello, l'installazione congelata delle dipendenze, l'audit delle dipendenze, il controllo TypeScript, la suite di test, la build e, nei client, la preparazione del backend affiancato e le prove di integrazione contro di esso; il comando deve terminare con esito non riuscito al primo controllo fallito o quando manca una risorsa richiesta, come `ambrogio-model` o il backend affiancato o gitleaks, senza saltare in silenzio un controllo.
-
-#### Details
-Il comando permette di eseguire prima di un push gli stessi controlli della CI secondo «Controlli prima dell'integrazione». Le regole di architettura con le loro fixture negative fanno parte della suite di test.
-
-Origine: baseline Reqvire «Complete verification command», adattata: i passi sono quelli della CI di ciascun repository; Ambrogio non ha un linter del codice né suite su un database esterno, e le regole di architettura girano nella suite di test.
-
-#### Metadata
-  * type: requirement
-
-#### Contract References
-  * [Controlli del modello dello spazio di lavoro](../Contracts/ModelDrivenDevelopment.md#controlli-del-modello-dello-spazio-di-lavoro)
-  * [Audit delle dipendenze con pnpm](../Contracts/ModelDrivenDevelopment.md#audit-delle-dipendenze-con-pnpm)
-  * [Profilo di installazione con pnpm e Corepack](../Contracts/ModelDrivenDevelopment.md#profilo-di-installazione-con-pnpm-e-corepack)
-
-#### Relations
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---

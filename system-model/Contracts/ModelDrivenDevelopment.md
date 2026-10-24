@@ -1,5 +1,20 @@
 # Elements
 
+### Audit delle dipendenze con pnpm
+
+Il job dei controlli della CI di ogni repository di prodotto esegue `pnpm audit --audit-level high` nella cartella del repository, dopo l'installazione congelata delle dipendenze e prima del controllo TypeScript: il comando confronta le dipendenze del lockfile con gli avvisi del registro npm e termina con esito non riuscito se trova un avviso di gravità `high` o `critical` non ignorato. Le opzioni `--ignore`, `--ignore-unfixable`, `--ignore-registry-errors`, `--prod` e `--dev` non si usano.
+
+Un avviso accettato si elenca singolarmente con il suo identificativo GHSA in `auditConfig.ignoreGhsas` di `pnpm-workspace.yaml` del repository e, nella stessa modifica, in questo contratto con il repository e il motivo; non si accettano intervalli di avvisi né eccezioni per un intero pacchetto.
+
+Eccezioni accettate: nessuna, in alcun repository di prodotto.
+
+#### Metadata
+  * type: specification
+
+#### Relations
+  * define: [Audit delle vulnerabilità delle dipendenze](../Requirements/ModelDrivenDevelopment.md#audit-delle-vulnerabilità-delle-dipendenze)
+---
+
 ### Checkout affiancato dello spazio di lavoro
 
 `scripts/checkout-workspace WORKSPACE BRANCH` clona da `https://github.com/ambrogio-app` nella cartella `WORKSPACE` ogni repository del modello che vi manca, fra `ambrogio-model`, `ambrogio-backend`, `ambrogio-satellite`, `ambrogio-cli` e `ambrogio-web`, sul branch `BRANCH` se esiste sul remoto e altrimenti su `main`, con la storia completa, e riporta per ciascuno il branch scelto.
@@ -13,6 +28,25 @@ La CI di ogni repository esegue il checkout del repository in prova in `workspac
   * define: [Controlli CI dei repository di Ambrogio](../Requirements/ModelDrivenDevelopment.md#controlli-ci-dei-repository-di-ambrogio)
 ---
 
+### Comando di verifica completo con pnpm
+
+Lo script `verify` del `package.json` di ogni repository di prodotto si esegue con `pnpm verify` dalla radice del repository, nella cartella di lavoro con i repository affiancati, ed esegue in sequenza con `&&`, così che il primo comando fallito interrompa la sequenza con esito non riuscito:
+
+1. `../ambrogio-model/scripts/model-checks`;
+2. `pnpm install --frozen-lockfile`;
+3. `pnpm audit --audit-level high`;
+4. nei client, nella cartella `../ambrogio-backend`, `pnpm install --frozen-lockfile` e `pnpm build`;
+5. i comandi `pnpm` dei controlli successivi all'installazione nel job dei controlli della CI del repository, nello stesso ordine, comprese le prove di integrazione `pnpm test:backend` dei client.
+
+Il requisito di ogni repository di prodotto che raffina «Comando di verifica completo» elenca i comandi del punto 5. La suite di test fallisce se gitleaks non è nel `PATH`, perché prova l'hook pre-commit.
+
+#### Metadata
+  * type: specification
+
+#### Relations
+  * define: [Comando di verifica completo](../Requirements/ModelDrivenDevelopment.md#comando-di-verifica-completo)
+---
+
 ### Controlli del modello dello spazio di lavoro
 
 `scripts/model-checks [--workspace DIR]` controlla l'intero modello della cartella di lavoro, predefinita quella che contiene `ambrogio-model`, con Reqvire alla versione risolta da «Risoluzione della versione di Reqvire». Reqvire legge una copia temporanea della cartella di lavoro preparata da `workspace_mirror` di `scripts/reqvire-workspace.sh`, con i soli file che Git vede in ciascun repository del modello, tracciati oppure nuovi e non ignorati, e un worktree Git vuoto per repository: sulla cartella reale Reqvire attraversa anche le dipendenze installate e impiega minuti invece di secondi. Esegue in sequenza `validate`; `lint --json`, fallendo se il rapporto contiene elementi in `auto_fixable` o in `needs_manual_review` e stampandolo; `node scripts/check-model.mjs` con la cartella di lavoro per Git e la copia per Reqvire; `scripts/repo-deps --check-acyclic`, che richiede `python3`. Termina con esito non riuscito al primo controllo fallito. Lo eseguono la CI e l'hook pre-commit di ogni repository del modello e il comando di verifica completo dei repository di prodotto.
@@ -22,6 +56,22 @@ La CI di ogni repository esegue il checkout del repository in prova in `workspac
 
 #### Relations
   * define: [Controllo automatico dell'integrità del modello](../Requirements/ModelDrivenDevelopment.md#controllo-automatico-dellintegrità-del-modello)
+---
+
+### Controlli del modello nell'hook pre-commit
+
+L'hook versionato `.githooks/pre-commit` di ogni repository del modello esegue prima la scansione dei segreti secondo «Profilo di scansione dei segreti con gitleaks» e, soltanto se la scansione riesce, `scripts/model-checks` di `ambrogio-model` senza argomenti, cioè sulla cartella che contiene `ambrogio-model`; l'hook termina con l'esito di `model-checks`.
+
+- In `ambrogio-model` lo script è `scripts/model-checks` del repository stesso.
+- In un repository di prodotto lo script è `../ambrogio-model/scripts/model-checks` rispetto alla radice del repository, ricavata con `git rev-parse --show-toplevel`. Se quel file non esiste o non è eseguibile, l'hook stampa su stderr `pre-commit: ambrogio-model is not next to this repository; clone https://github.com/ambrogio-app/ambrogio-model beside it and retry.` e termina con esito non riuscito, senza creare il commit.
+
+L'hook di un repository di prodotto è uno script POSIX `sh`.
+
+#### Metadata
+  * type: specification
+
+#### Relations
+  * define: [Controlli del modello prima del commit](../Requirements/ModelDrivenDevelopment.md#controlli-del-modello-prima-del-commit)
 ---
 
 ### Profilo comune dei workflow GitHub Actions
@@ -39,6 +89,19 @@ In `ambrogio-model` i job sono `Model checks` di `ci.yml`, con `timeout-minutes:
 
 #### Relations
   * define: [Workflow GitHub Actions con privilegi e durata limitati](../Requirements/ModelDrivenDevelopment.md#workflow-github-actions-con-privilegi-e-durata-limitati)
+---
+
+### Profilo di installazione con pnpm e Corepack
+
+Il `package.json` di ogni repository di prodotto dichiara `"packageManager": "pnpm@<versione esatta>"`. Il job della CI, dopo `actions/setup-node` con Node.js 24, esegue `corepack enable` con la variabile d'ambiente `COREPACK_ENABLE_DOWNLOAD_PROMPT` uguale a `0`; da quel passo ogni comando `pnpm` usa la versione dichiarata dal `package.json` della cartella in cui gira. La fase di build di un Dockerfile parte da un'immagine ufficiale `node` 24, dichiara `ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0` ed esegue `corepack enable` prima di copiare il manifest e installare. Workflow e Dockerfile non installano pnpm con `npm install --global` né lo eseguono con `npx`. Le installazioni in CI e nelle build delle immagini usano `pnpm install --frozen-lockfile`.
+
+Node.js 24 include Corepack, che scarica la versione di pnpm dichiarata e ne verifica la firma; Node.js 25 e successivi non lo includono più, e il passaggio a una di quelle versioni richiede di installare Corepack separatamente con una modifica di questo contratto.
+
+#### Metadata
+  * type: specification
+
+#### Relations
+  * define: [Installazione delle dipendenze con pnpm attivato da Corepack](../Requirements/ModelDrivenDevelopment.md#installazione-delle-dipendenze-con-pnpm-attivato-da-corepack)
 ---
 
 ### Profilo di scansione dei segreti con gitleaks
@@ -71,7 +134,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 
 #### Decisioni esaminate e non adottate
 - «Drain of accepted requests on shutdown»: all'arresto i turni in corso sono interrotti, secondo «Interruption of active operations on shutdown».
-- «OpenAPI contract generated from the routes»: il contratto pubblico è descritto nel modello e nello schema JSON del protocollo, senza pubblicazione OpenAPI.
+- «OpenAPI contract generated from the routes»: non adottata per decisione della persona; l'API HTTP pubblica è descritta dai contratti del modello e dal riferimento delle API HTTP di `ambrogio-docs`, il protocollo dallo schema JSON pubblicato.
 - «MCP for model authoring and CLI for repeatable checks»: il modello si legge e si modifica soltanto con la CLI Reqvire.
 - «Protected HTTP surface by default»: rimandata con la decisione separata sull'autenticazione; oggi l'accesso al backend è limitato dalla rete dell'installazione e dal reverse proxy.
 - «No save after refused creation»: la creazione di un turno non prevede rifiuti; i dati non validi sono rifiutati prima del Domain.
@@ -147,67 +210,4 @@ La cartella di lavoro contiene `ambrogio-model` e i repository di prodotto affia
 
 #### Relations
   * define: [Un solo modello attraverso i repository](../Requirements/ModelDrivenDevelopment.md#un-solo-modello-attraverso-i-repository)
----
-
-### Controlli del modello nell'hook pre-commit
-
-L'hook versionato `.githooks/pre-commit` di ogni repository del modello esegue prima la scansione dei segreti secondo «Profilo di scansione dei segreti con gitleaks» e, soltanto se la scansione riesce, `scripts/model-checks` di `ambrogio-model` senza argomenti, cioè sulla cartella che contiene `ambrogio-model`; l'hook termina con l'esito di `model-checks`.
-
-- In `ambrogio-model` lo script è `scripts/model-checks` del repository stesso.
-- In un repository di prodotto lo script è `../ambrogio-model/scripts/model-checks` rispetto alla radice del repository, ricavata con `git rev-parse --show-toplevel`. Se quel file non esiste o non è eseguibile, l'hook stampa su stderr `pre-commit: ambrogio-model is not next to this repository; clone https://github.com/ambrogio-app/ambrogio-model beside it and retry.` e termina con esito non riuscito, senza creare il commit.
-
-L'hook di un repository di prodotto è uno script POSIX `sh`.
-
-#### Metadata
-  * type: specification
-
-#### Relations
-  * define: [Controlli del modello prima del commit](../Requirements/ModelDrivenDevelopment.md#controlli-del-modello-prima-del-commit)
----
-
-### Audit delle dipendenze con pnpm
-
-Il job dei controlli della CI di ogni repository di prodotto esegue `pnpm audit --audit-level high` nella cartella del repository, dopo l'installazione congelata delle dipendenze e prima del controllo TypeScript: il comando confronta le dipendenze del lockfile con gli avvisi del registro npm e termina con esito non riuscito se trova un avviso di gravità `high` o `critical` non ignorato. Le opzioni `--ignore`, `--ignore-unfixable`, `--ignore-registry-errors`, `--prod` e `--dev` non si usano.
-
-Un avviso accettato si elenca singolarmente con il suo identificativo GHSA in `auditConfig.ignoreGhsas` di `pnpm-workspace.yaml` del repository e, nella stessa modifica, in questo contratto con il repository e il motivo; non si accettano intervalli di avvisi né eccezioni per un intero pacchetto.
-
-Eccezioni accettate: nessuna, in alcun repository di prodotto.
-
-#### Metadata
-  * type: specification
-
-#### Relations
-  * define: [Audit delle vulnerabilità delle dipendenze](../Requirements/ModelDrivenDevelopment.md#audit-delle-vulnerabilità-delle-dipendenze)
----
-
-### Profilo di installazione con pnpm e Corepack
-
-Il `package.json` di ogni repository di prodotto dichiara `"packageManager": "pnpm@<versione esatta>"`. Il job della CI, dopo `actions/setup-node` con Node.js 24, esegue `corepack enable` con la variabile d'ambiente `COREPACK_ENABLE_DOWNLOAD_PROMPT` uguale a `0`; da quel passo ogni comando `pnpm` usa la versione dichiarata dal `package.json` della cartella in cui gira. La fase di build di un Dockerfile parte da un'immagine ufficiale `node` 24, dichiara `ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0` ed esegue `corepack enable` prima di copiare il manifest e installare. Workflow e Dockerfile non installano pnpm con `npm install --global` né lo eseguono con `npx`. Le installazioni in CI e nelle build delle immagini usano `pnpm install --frozen-lockfile`.
-
-Node.js 24 include Corepack, che scarica la versione di pnpm dichiarata e ne verifica la firma; Node.js 25 e successivi non lo includono più, e il passaggio a una di quelle versioni richiede di installare Corepack separatamente con una modifica di questo contratto.
-
-#### Metadata
-  * type: specification
-
-#### Relations
-  * define: [Installazione delle dipendenze con pnpm attivato da Corepack](../Requirements/ModelDrivenDevelopment.md#installazione-delle-dipendenze-con-pnpm-attivato-da-corepack)
----
-
-### Comando di verifica completo con pnpm
-
-Lo script `verify` del `package.json` di ogni repository di prodotto si esegue con `pnpm verify` dalla radice del repository, nella cartella di lavoro con i repository affiancati, ed esegue in sequenza con `&&`, così che il primo comando fallito interrompa la sequenza con esito non riuscito:
-
-1. `../ambrogio-model/scripts/model-checks`;
-2. `pnpm install --frozen-lockfile`;
-3. `pnpm audit --audit-level high`;
-4. nei client, nella cartella `../ambrogio-backend`, `pnpm install --frozen-lockfile` e `pnpm build`;
-5. i comandi `pnpm` dei controlli successivi all'installazione nel job dei controlli della CI del repository, nello stesso ordine, comprese le prove di integrazione `pnpm test:backend` dei client.
-
-Il requisito di ogni repository di prodotto che raffina «Comando di verifica completo» elenca i comandi del punto 5. La suite di test fallisce se gitleaks non è nel `PATH`, perché prova l'hook pre-commit.
-
-#### Metadata
-  * type: specification
-
-#### Relations
-  * define: [Comando di verifica completo](../Requirements/ModelDrivenDevelopment.md#comando-di-verifica-completo)
 ---
