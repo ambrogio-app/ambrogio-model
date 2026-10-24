@@ -1,5 +1,38 @@
 # Elements
 
+### Ambiente di esecuzione dichiarato
+
+Ogni processo di servizio di Ambrogio deve richiedere un ambiente di esecuzione esplicito fra `development`, `test` e `production`, senza valore predefinito, deve applicare un valore predefinito dichiarato per un ambiente soltanto in quell'ambiente e, in `production`, deve richiedere un valore esplicito per ogni impostazione che ha un valore predefinito di sviluppo.
+
+#### Details
+I repository raffinano questo requisito con le variabili dei propri moduli di configurazione.
+
+Origine: baseline Reqvire «Declared runtime environment», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
+### Caricamento esplicito del file d'ambiente locale
+
+Quando lo sviluppo di un processo di servizio di Ambrogio usa un file d'ambiente locale, il comando di sviluppo deve caricarlo esplicitamente, i valori già presenti nell'ambiente del processo devono prevalere su quelli del file, l'applicazione non deve caricare file d'ambiente da sé, e il repository deve fornire un file d'esempio con i nomi delle variabili e i soli valori approvati; il file d'ambiente effettivo non deve essere versionato.
+
+#### Details
+Origine: baseline Reqvire «Explicit loading of local environment files», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Profilo dell'ambiente di esecuzione e del file d'ambiente locale](../Contracts/HomelabInstallation.md#profilo-dellambiente-di-esecuzione-e-del-file-dambiente-locale)
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
 ### Configurazioni effettive escluse dagli artefatti
 
 Ogni repository di Ambrogio deve tenere fuori dal repository Git e dagli artefatti distribuiti, come le immagini container, i file di configurazione effettivi delle installazioni, e i suoi esempi di configurazione non devono contenere credenziali effettive.
@@ -8,6 +41,22 @@ Ogni repository di Ambrogio deve tenere fuori dal repository Git e dagli artefat
 I repository che leggono configurazioni effettive raffinano questo requisito con i propri file di esclusione e le proprie prove.
 
 Origine: baseline Reqvire «Actual configuration files kept out of artifacts», adottata; «Configuration examples without credentials», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
+### Modulo di configurazione per componente dalle variabili d'ambiente
+
+Ogni componente configurabile di un processo di servizio di Ambrogio deve avere un proprio modulo di configurazione TypeScript, parte della build, che legge i valori dalle variabili d'ambiente del processo e li valida con lo schema del componente; il modulo non deve contenere valori effettivi, chi installa deve fornire i valori come variabili d'ambiente senza eseguire codice proprio, e il processo deve leggere la configurazione una sola volta all'avvio, prima di attivare i componenti dell'ingresso che avvia.
+
+#### Details
+I processi di servizio sono il backend e il satellite vocale; la chat web è un insieme di file statici con la propria configurazione e il client terminale riceve le impostazioni da chi lo avvia. Le credenziali di API esterne sono valori di configurazione come gli altri. I repository raffinano questo requisito con i propri moduli e le proprie variabili; un file di soli dati montato nel container al posto delle variabili è ammesso soltanto dove un requisito del repository lo dichiara come adattamento.
+
+Origine: baseline Reqvire «Configuration module per component reading environment variables», adottata; «One-time configuration load at startup», adottata.
 
 #### Metadata
   * type: requirement
@@ -38,6 +87,22 @@ Un processo di Ambrogio deve validare la configurazione dei componenti attivi pr
 
 #### Details
 Origine: baseline Reqvire «Validation of active configuration before use», adottata; «Targeted distribution of validated configuration», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Installazione nell'homelab](../Capabilities/Engineering.md#installazione-nellhomelab)
+---
+
+### Valori predefiniti applicati dal proprietario
+
+Un valore predefinito deve essere applicato soltanto quando l'assenza del valore è ammessa e il valore è deciso per quel concetto, una sola volta ed esplicitamente dal suo proprietario: il modulo di configurazione del componente per i valori tecnici e d'ambiente, l'adapter inbound per la comodità del protocollo, Application per l'intenzione e Domain per una creazione valida; gli esempi distribuiti, i file d'ambiente d'esempio e i file Compose d'esempio non devono ripetere un valore predefinito, e un valore predefinito dichiarato soltanto nella documentazione o in un esempio non deve essere considerato applicato.
+
+#### Details
+La documentazione utente descrive i valori predefiniti applicati dai proprietari senza sostituirli.
+
+Origine: baseline Reqvire «Defaults applied by their owner», adattata: la regola si estende ai valori predefiniti della configurazione, di cui il modulo di configurazione del componente è il proprietario, e vieta agli esempi distribuiti di ripeterli.
 
 #### Metadata
   * type: requirement
