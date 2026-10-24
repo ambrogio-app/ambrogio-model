@@ -94,6 +94,21 @@ L'ispezione passa se i testi non riportano indirizzi, nomi host, domini, percors
   * verify: [Visibilità dei repository decisa dalla persona](../Requirements/ModelDrivenDevelopment.md#visibilità-dei-repository-decisa-dalla-persona)
 ---
 
+### Ispezione dei contratti esterni
+
+Durante la revisione di ogni modifica che aggiunge o aggiorna una dipendenza da un servizio, un protocollo, un'API esterna o un modello scaricato o distribuito, e alla preparazione di ogni release, esaminare gli elementi `source` dei repository interessati, i requisiti e i contratti che li citano e le prove d'integrazione collegate.
+
+#### Details
+L'ispezione passa se ogni contratto esterno da cui il repository dipende ha un elemento `source` posseduto da un suo requisito, con versione, origine dell'informazione e prova d'integrazione; se i requisiti che possiedono contratti dipendenti lo citano con una Contract Reference e i testi non ne ripetono la versione, salvo i valori d'esempio; se una versione cambiata lo è nell'elemento `source` con la prova d'integrazione ripetuta; e se nessun collegamento punta fuori dalla cartella di lavoro. Fallisce se una dipendenza esterna non ha un elemento o non ne dichiara la versione, se un testo ripete una versione registrata, se una versione è cambiata senza modificare l'elemento o se un collegamento punta all'esterno. Non automatizzabile: riconoscere quali dipendenze sono esterne al prodotto e se la versione dichiarata corrisponde a quella usata dall'integrazione richiede di leggere codice, configurazione e documentazione dei fornitori.
+
+#### Metadata
+  * type: inspection-verification
+
+#### Relations
+  * derivedFrom: [Verifica del governo del modello](#verifica-del-governo-del-modello)
+  * verify: [Contratti esterni registrati con la loro versione](../Requirements/ModelDrivenDevelopment.md#contratti-esterni-registrati-con-la-loro-versione)
+---
+
 ### Ispezione del metodo nella pull request
 
 Durante la revisione di ogni pull request, confrontare i commit, la descrizione e le modifiche di tutti i repository coinvolti con il modello: ordine dei commit fra modello e codice, decisioni tecniche nuove, controlli eseguiti, branch usati e pagine di `ambrogio-docs` aggiornate.

@@ -54,6 +54,25 @@ Origine: baseline Reqvire «Compatibility between releases by interface version�
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
+### Contratti esterni registrati con la loro versione
+
+Quando un repository del modello dipende da un contratto esterno al prodotto, cioè da un servizio, un protocollo o un'API di un altro proprietario o da un modello scaricato o distribuito che proviene da una fonte esterna, il repository che lo usa deve registrarlo nella propria cartella `system-model/` come elemento `type: source`, posseduto con `define` da un proprio requisito, che dichiara la versione da cui dipende, l'origine dell'informazione e la prova d'integrazione; ogni requisito che possiede un contratto dipendente da quella versione deve citare l'elemento con una Contract Reference, e i testi di requisiti e contratti non devono ripeterne la versione; l'aggiornamento della versione deve essere una modifica esplicita dell'elemento `source`, fatta nella stessa modifica che ripete la prova d'integrazione.
+
+#### Details
+Un contratto esterno resta fuori dalla cartella di lavoro: nessun collegamento Reqvire punta a un repository o a un documento esterni, e l'elemento `source` ne riporta l'indirizzo come testo. La versione dichiarata è quella da cui il prodotto dipende, per esempio la release minima di un servizio che offre l'interfaccia usata o il file fissato con la sua impronta; quando la prova d'integrazione non registra la versione con cui è stata eseguita, l'elemento lo dichiara invece di attribuirle una versione. Un contratto che descrive un valore di configurazione d'esempio, come l'identificativo di un modello in un file d'esempio, lo riporta come esempio. Le interfacce del backend usate dai client appartengono al modello e non sono contratti esterni.
+
+Le librerie npm non sono registrate come elementi `source`: le governano le versioni esatte e il lockfile congelato di «Installazione delle dipendenze con pnpm attivato da Corepack» e l'audit di «Audit delle vulnerabilità delle dipendenze», e un modello distribuito dentro un pacchetto npm segue la versione del pacchetto.
+
+Origine: baseline Reqvire «External contracts recorded with their version», adattata: la registrazione copre servizi, protocolli, API esterne e modelli scaricati o distribuiti, non le librerie npm, governate da versioni esatte, lockfile congelato e audit; la parte sulle versioni coesistenti di un contratto interno come elementi distinti è esclusa da «Compatibilità fra release per versione d'interfaccia», perché backend e client cambiano e si rilasciano insieme.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * satisfiedBy: [AGENTS.md](../../AGENTS.md)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Controlli CI dei repository di Ambrogio
 
 Quando viene eseguito un push sul branch principale, viene proposta o aggiornata una pull request, viene richiesta un'esecuzione manuale o un altro workflow la richiama, la CI di ogni repository di Ambrogio deve scaricare affiancati gli altri repository del modello, ciascuno sul branch con lo stesso nome della modifica se esiste e altrimenti su `main`, ed eseguire i controlli dell'intero modello e, nei repository di prodotto, il controllo TypeScript, la suite di test, comprese le prove di integrazione contro i repository affiancati, e la build, e deve fallire se uno di questi controlli fallisce.
