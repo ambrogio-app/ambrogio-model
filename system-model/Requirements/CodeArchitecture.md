@@ -386,6 +386,8 @@ Quando un client conversazionale di Ambrogio comunica con il backend, deve usare
 #### Details
 Ogni client raffina questo requisito con le Contract References ai contratti del backend che usa e con una prova automatica che il proprio codice di produzione non importi codice del backend. Le prove di integrazione dei client usano l'ingresso di prova pubblico registrato dal backend. La compatibilità fra release segue «Compatibilità fra release per versione d'interfaccia».
 
+Origine: baseline Reqvire «Client integration through the public server interfaces only», adottata.
+
 #### Concept References
   * [Client conversazionale](../Thesaurus/Lessico.md#client-conversazionale)
   * [Backend](../Thesaurus/Lessico.md#backend)

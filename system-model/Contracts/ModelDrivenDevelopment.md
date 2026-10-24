@@ -124,7 +124,7 @@ Si usa la configurazione predefinita di gitleaks, senza file `.gitleaks.toml`, f
 
 ### Registro della baseline Reqvire
 
-Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-baseline, commit adottato `2a39b16`. Il catalogo delle decisioni è `CATALOG.md` a quel commit; i temi sono in `themes/`. Questo elemento è l'unico del modello che nomina il commit.
+Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-baseline, commit adottato `bbc76b2`. Il catalogo delle decisioni è `CATALOG.md` a quel commit; i temi sono in `themes/`. Questo elemento è l'unico del modello che nomina il commit.
 
 #### Temi esaminati e non adottati
 - «Business authorization»: Ambrogio non ha operazioni il cui permesso dipende da chi le invoca, perché la famiglia condivide un'unica identità e l'accesso è limitato dalla rete dell'installazione; l'autenticazione, comprese «Authentication delegated to an external identity provider» e «Keycloak as identity provider», è rimandata a una decisione di prodotto separata.
