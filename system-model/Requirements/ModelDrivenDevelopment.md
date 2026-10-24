@@ -22,7 +22,7 @@ Origine: baseline Reqvire «External contracts recorded with their version», ad
 Quando viene eseguito un push sul branch principale, viene proposta o aggiornata una pull request, viene richiesta un'esecuzione manuale o un altro workflow la richiama, la CI di ogni repository di Ambrogio deve scaricare affiancati gli altri repository del modello, ciascuno sul branch con lo stesso nome della modifica se esiste e altrimenti su `main`, ed eseguire i controlli dell'intero modello e, nei repository di prodotto, il controllo TypeScript, la suite di test, comprese le prove di integrazione contro i repository affiancati, e la build, e deve fallire se uno di questi controlli fallisce.
 
 #### Details
-Ogni repository di prodotto raffina questo requisito con i nomi dei propri job e i passi propri. In `ambrogio-model` la CI esegue i controlli del modello e, per una pull request, riporta l'analisi d'impatto composita nel riepilogo del job.
+Ogni repository di prodotto raffina questo requisito con i nomi dei propri job e i passi propri, e ne ripete i controlli in locale con il comando di verifica completo. In `ambrogio-model` la CI esegue i controlli del modello e, per una pull request, riporta l'analisi d'impatto composita nel riepilogo del job.
 
 Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: la CI lavora sul checkout affiancato dei repository del modello e comprende le prove di integrazione fra repository.
 
@@ -39,20 +39,21 @@ Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: 
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
-### Controlli del modello prima del commit in ambrogio-model
+### Controlli del modello prima del commit
 
-Quando si crea un commit in un clone di `ambrogio-model` con gli hook versionati attivi, l'hook pre-commit deve eseguire, dopo la scansione dei segreti, i controlli del modello della cartella di lavoro e deve impedire il commit se uno di questi controlli fallisce.
+Quando si crea un commit in un clone di un repository del modello con gli hook versionati attivi, l'hook pre-commit deve eseguire, dopo la scansione dei segreti, i controlli dell'intero modello della cartella di lavoro con `scripts/model-checks` di `ambrogio-model`, e deve impedire il commit se uno di questi controlli fallisce oppure se, in un repository di prodotto, `ambrogio-model` non è affiancato al repository.
 
 #### Details
-L'hook esegue `scripts/model-checks` sulla cartella che contiene `ambrogio-model`.
+I controlli comprendono la validazione e il lint di Reqvire, lo script di integrità del modello e il controllo del grafo fra repository: le regole di integrità si riapplicano a ogni commit, e la CI ripete gli stessi controlli. Ogni repository di prodotto raffina questo requisito con il proprio hook e la relativa prova.
 
-Origine: baseline Reqvire «Model checks before commit», adottata.
+Origine: baseline Reqvire «Model checks before commit», adattata: l'hook di un repository di prodotto controlla l'intero modello dal checkout affiancato di `ambrogio-model` e impedisce il commit quando `ambrogio-model` non è affiancato.
 
 #### Metadata
   * type: requirement
 
 #### Contract References
   * [Controlli del modello dello spazio di lavoro](../Contracts/ModelDrivenDevelopment.md#controlli-del-modello-dello-spazio-di-lavoro)
+  * [Profilo di scansione dei segreti con gitleaks](../Contracts/ModelDrivenDevelopment.md#profilo-di-scansione-dei-segreti-con-gitleaks)
 
 #### Relations
   * satisfiedBy: [pre-commit](../../.githooks/pre-commit)
@@ -80,7 +81,7 @@ Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: 
 Prima di proporre una modifica per l'integrazione, chi la propone deve eseguire in locale i controlli della CI dei repository interessati, compresi i controlli dell'intero modello, e deve eseguire la copertura, la tracciabilità e l'analisi d'impatto dell'intero modello, rivedendo gli elementi segnalati; un lint del modello con correzioni automatiche o elementi da rivedere deve bloccare la proposta.
 
 #### Details
-Il modello si valida anche durante la costruzione, dopo modifiche significative. Il rapporto di copertura non certifica che i test siano passati e le verifiche segnalate dall'analisi d'impatto richiedono revisione, non sono automaticamente fallite. Al termine si riportano le modifiche, i controlli eseguiti e le lacune o attività esterne ancora aperte.
+Nei repository di prodotto i controlli della CI si eseguono con `pnpm verify`. Il modello si valida anche durante la costruzione, dopo modifiche significative. Il rapporto di copertura non certifica che i test siano passati e le verifiche segnalate dall'analisi d'impatto richiedono revisione, non sono automaticamente fallite. Al termine si riportano le modifiche, i controlli eseguiti e le lacune o attività esterne ancora aperte.
 
 Origine: baseline Reqvire «Local checks before push», adottata; «Model validation and review before completion», adattata: l'analisi d'impatto copre tutti i repository con `scripts/change-impact-composite`.
 
@@ -243,12 +244,14 @@ Origine: baseline Reqvire «Examples in English», adottata.
 
 ### File di governo collegati al modello
 
-Ogni workflow di CI, hook Git, file di build del container, esempio Compose, file di esclusione, configurazione del gestore di pacchetti, del compilatore o del runner di test, script e file di istruzioni per gli agenti `AGENTS.md` di ciascun repository del modello deve essere riferito da almeno un requisito o una verifica del modello.
+Ogni file di configurazione di GitHub, compresi i workflow di CI, ogni hook Git, file di build del container, esempio Compose, file di esclusione, configurazione del gestore di pacchetti, del compilatore o del runner di test, script e file di istruzioni per gli agenti `AGENTS.md` di ciascun repository del modello deve essere riferito da almeno un requisito o una verifica del modello.
 
 #### Details
 Un file che codifica decisioni ingegneristiche senza un collegamento al modello cambia senza che alcun obbligo lo segnali, e le decisioni presenti solo nei file divergono fra file simili, per esempio fra i workflow di controllo e quello di pubblicazione. Lo script di integrità controlla i file per percorso; gli `AGENTS.md` sono controllati nella revisione.
 
-Origine: baseline Reqvire «Governed files linked to the model», adattata: l'insieme comprende `.github/workflows/**` invece di `.github/**`, gli esempi Compose, `.npmrc`, le configurazioni del runner dei test e gli `AGENTS.md`.
+Le immagini in `.github/`, come i loghi mostrati dai README, sono escluse: sono asset grafici e non codificano decisioni ingegneristiche.
+
+Origine: baseline Reqvire «Governed files linked to the model», adattata: l'insieme esclude le immagini di `.github/**` e comprende gli esempi Compose, `.npmrc`, le configurazioni del runner dei test e gli `AGENTS.md`.
 
 #### Metadata
   * type: requirement
@@ -455,5 +458,61 @@ Origine: baseline Reqvire «Least-privilege workflow token», adottata; «Workfl
 #### Relations
   * satisfiedBy: [ci.yml](../../.github/workflows/ci.yml)
   * satisfiedBy: [secret-scan.yml](../../.github/workflows/secret-scan.yml)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Audit delle vulnerabilità delle dipendenze
+
+Quando viene eseguito un push sul branch principale o viene proposta o aggiornata una pull request, la CI di ogni repository di prodotto deve controllare le dipendenze del lockfile rispetto alle vulnerabilità note e deve fallire se trova una vulnerabilità di gravità alta o critica che non è elencata individualmente, con il proprio identificativo e il motivo, fra le eccezioni accettate del modello.
+
+#### Details
+Prima di accettare un'eccezione si aggiorna la dipendenza vulnerabile, anche transitiva, a una versione corretta compatibile con gli intervalli dichiarati. Ogni repository di prodotto raffina questo requisito con il proprio job e la relativa prova; il comando di verifica completo ripete l'audit in locale.
+
+Origine: baseline Reqvire «Dependency vulnerability audit», adattata: senza l'esecuzione notturna programmata, per decisione della persona; un nuovo avviso emerge al primo push o alla prima pull request successivi; le prove dei repository controllano il comando e la configurazione dell'audit senza interrogare il registro, che soltanto la CI e il comando di verifica completo consultano.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Installazione delle dipendenze con pnpm attivato da Corepack
+
+Ogni repository di prodotto deve installare le proprie dipendenze con pnpm alla versione esatta dichiarata nel campo `packageManager` del proprio `package.json`, dal lockfile versionato e senza modificarlo; la CI e la build delle immagini container devono attivare quella versione di pnpm con Corepack, senza installarne un'altra.
+
+#### Details
+Ogni repository di prodotto raffina questo requisito con la propria versione di pnpm e le proprie regole di installazione. In sviluppo si usa la stessa versione esatta di pnpm, attivata con Corepack o installata separatamente. Un repository che prepara un altro repository affiancato, come il backend nella CI dei client, esegue pnpm nella cartella di quel repository, così che Corepack usi la versione dichiarata da quel repository.
+
+Origine: baseline Reqvire «pnpm as package manager», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Profilo comune dei workflow GitHub Actions](../Contracts/ModelDrivenDevelopment.md#profilo-comune-dei-workflow-github-actions)
+
+#### Relations
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Comando di verifica completo
+
+Ogni repository di prodotto deve offrire un unico comando che esegue in locale, nell'ordine della CI del repository, i controlli dell'intero modello, l'installazione congelata delle dipendenze, l'audit delle dipendenze, il controllo TypeScript, la suite di test, la build e, nei client, la preparazione del backend affiancato e le prove di integrazione contro di esso; il comando deve terminare con esito non riuscito al primo controllo fallito o quando manca una risorsa richiesta, come `ambrogio-model` o il backend affiancato o gitleaks, senza saltare in silenzio un controllo.
+
+#### Details
+Il comando permette di eseguire prima di un push gli stessi controlli della CI secondo «Controlli prima dell'integrazione». Le regole di architettura con le loro fixture negative fanno parte della suite di test.
+
+Origine: baseline Reqvire «Complete verification command», adattata: i passi sono quelli della CI di ciascun repository; Ambrogio non ha un linter del codice né suite su un database esterno, e le regole di architettura girano nella suite di test.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Controlli del modello dello spazio di lavoro](../Contracts/ModelDrivenDevelopment.md#controlli-del-modello-dello-spazio-di-lavoro)
+  * [Audit delle dipendenze con pnpm](../Contracts/ModelDrivenDevelopment.md#audit-delle-dipendenze-con-pnpm)
+  * [Profilo di installazione con pnpm e Corepack](../Contracts/ModelDrivenDevelopment.md#profilo-di-installazione-con-pnpm-e-corepack)
+
+#### Relations
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---

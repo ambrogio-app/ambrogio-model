@@ -251,3 +251,19 @@ Ogni client raffina questo requisito con le Contract References ai contratti del
 #### Relations
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
+
+### Regole di architettura centrali e bloccanti
+
+Ogni repository di prodotto con regole di architettura sugli import deve tenerle in un'unica fonte centrale della propria suite di test, ciascuna con un nome stabile, controllate a ogni esecuzione della suite sull'intero grafo degli import dei sorgenti e dei test del repository, compresi gli import di soli tipi, con almeno una fixture negativa per regola che fallisce con il nome della regola attesa; un'eccezione deve essere una voce esplicita della configurazione centrale con il nome della regola, l'import ammesso e il motivo, registrata nel contratto delle regole del repository, e l'analisi non deve limitarsi ai file modificati né ridursi ad avvisi.
+
+#### Details
+Si applica al backend e al satellite, che hanno componenti in layer; ciascuno raffina questo requisito con il contratto che elenca i nomi delle proprie regole e le eccezioni ammesse. Una violazione fa fallire la suite di test, quindi la CI e il comando di verifica completo.
+
+Origine: baseline Reqvire «Central blocking architecture rules», adattata: le regole sono controlli della suite Vitest sul testo dei sorgenti invece della configurazione di dependency-cruiser.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---

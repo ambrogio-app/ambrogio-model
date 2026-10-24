@@ -18,7 +18,7 @@ Origine: baseline Reqvire «Actual configuration files kept out of artifacts», 
 
 ### Pubblicazione delle immagini di release
 
-Quando viene creato un tag di release `vMAJOR.MINOR.PATCH` in un repository di Ambrogio che distribuisce un'immagine container, il repository deve pubblicare su GHCR l'immagine con tag uguale al tag Git e alla versione dichiarata dal componente, senza un tag mobile `latest`, soltanto dopo che la CI, la scansione dei segreti e la verifica dell'immagine per ogni architettura dichiarata sono riuscite sullo stesso commit; un push sul branch principale non deve pubblicare immagini.
+Quando viene creato un tag di release `vMAJOR.MINOR.PATCH` in un repository di Ambrogio che distribuisce un'immagine container, il repository deve pubblicare su GHCR l'immagine con tag uguale al tag Git e alla versione dichiarata dal componente, senza un tag mobile `latest`, soltanto dopo che la CI, la scansione dei segreti e la verifica dell'immagine per ogni architettura dichiarata sono riuscite sullo stesso commit, e deve scrivere il riferimento dell'immagine pubblicata nel riepilogo del job di pubblicazione; un push sul branch principale non deve pubblicare immagini.
 
 #### Details
 Ogni repository che distribuisce un'immagine raffina questo requisito con il nome del pacchetto, le architetture e la verifica dell'immagine. La visibilità dei pacchetti segue «Visibilità dei repository decisa dalla persona».
