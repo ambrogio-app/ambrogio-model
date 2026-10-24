@@ -39,14 +39,12 @@ Origine: baseline Reqvire «Complete verification command», adattata: i passi s
 
 ### Compatibilità fra release per versione d'interfaccia
 
-Ogni release del backend deve dichiarare le versioni del protocollo conversazionale e dell'API HTTP pubblica che offre, e ogni release di un client quelle che usa; un cambio incompatibile di un'interfaccia pubblica del backend deve introdurre una nuova versione maggiore di quell'interfaccia, mantenendo la versione precedente come elemento distinto del modello del backend finché un client la usa.
+Ogni release del backend deve dichiarare le versioni del protocollo conversazionale e dell'API HTTP pubblica che offre, e ogni release di un client quelle che usa; un cambio incompatibile di un'interfaccia pubblica del backend, cioè del protocollo conversazionale, dell'API HTTP pubblica o dell'ingresso di prova del server conversazionale, deve essere fatto nella stessa modifica dei client che usano quell'interfaccia, sullo stesso branch in ciascun repository, deve cambiare la versione maggiore nel nome dell'interfaccia quando il nome la porta, e backend e client devono essere rilasciati insieme; il backend non deve conservare versioni precedenti di un'interfaccia.
 
 #### Details
-Nessun client fissa una revisione del backend: la compatibilità fra release si stabilisce per versione d'interfaccia. `ambrogio-docs/reference/versions.md` riporta, per ogni release, le versioni d'interfaccia offerte o usate.
+Nessun client fissa una revisione del backend e nessuna interfaccia pubblica del backend ha versioni coesistenti: quando il backend cambia un'interfaccia in modo incompatibile, i client che la usano si aggiornano nella stessa modifica. Il protocollo conversazionale porta la versione maggiore nel sottoprotocollo, `ambrogio.v1`, e l'API HTTP pubblica nel percorso, `/api/v1`; la versione nel nome cambia a ogni cambio incompatibile. `ambrogio-docs/reference/versions.md` riporta, per ogni release, le versioni d'interfaccia offerte o usate e indica quali release funzionano insieme; una release di un client che usa una versione non più offerta non funziona con le release successive del backend.
 
-Origine: baseline Reqvire «External contracts recorded with their version», adattata: Ambrogio ne adotta la regola delle versioni coesistenti di un contratto come elementi distinti del repository che lo possiede; le interfacce del backend sono interne al prodotto e i client vi si collegano direttamente.
-
-Origine: baseline Reqvire «Compatibility between releases by interface version», adottata.
+Origine: baseline Reqvire «Compatibility between releases by interface version», adattata: un cambio incompatibile si fa nella stessa modifica del backend e dei client che usano l'interfaccia, rilasciati insieme, e la versione precedente non resta disponibile come elemento distinto del modello del backend.
 
 #### Metadata
   * type: requirement
@@ -450,7 +448,7 @@ Origine: baseline Reqvire «Agreed technical choices», adottata; «Explicit sup
 Il modello Reqvire di Ambrogio deve essere uno solo, formato dalle cartelle `system-model/` di `ambrogio-model` e dei repository di prodotto affiancati in una cartella di lavoro, e deve essere letto, modificato e validato da quella cartella con collegamenti diretti fra repository; le dipendenze fra repository devono restare senza cicli, con `ambrogio-model` che non si collega a nessun repository di prodotto e il backend che non si collega ai client, e una modifica che tocca più repository deve usare lo stesso nome di branch in ciascuno.
 
 #### Details
-Un requisito di un client si collega al contratto del backend da cui dipende; un requisito locale raffina con `derivedFrom` la decisione comune di `ambrogio-model`. Versioni coesistenti di un contratto interno sono elementi distinti del repository che lo possiede, senza revisioni fissate di un altro repository. Le pull request di una modifica che tocca più repository si integrano in ordine di dipendenza, a partire da `ambrogio-model`. `ambrogio-docs` non ha un modello e non fa parte del grafo. Con un solo grafo, validazione, copertura e analisi d'impatto vedono insieme gli obblighi di tutti i repository.
+Un requisito di un client si collega al contratto del backend da cui dipende; un requisito locale raffina con `derivedFrom` la decisione comune di `ambrogio-model`. Nessun repository fissa una revisione di un altro, e le interfacce pubbliche del backend non hanno versioni coesistenti, secondo «Compatibilità fra release per versione d'interfaccia». Le pull request di una modifica che tocca più repository si integrano in ordine di dipendenza, a partire da `ambrogio-model`. `ambrogio-docs` non ha un modello e non fa parte del grafo. Con un solo grafo, validazione, copertura e analisi d'impatto vedono insieme gli obblighi di tutti i repository.
 
 Le letture del modello con Reqvire si eseguono con `scripts/rv`, che usa la stessa copia temporanea dei controlli e rifiuta i comandi che modificano il modello; le modifiche con la CLI si eseguono sulla cartella di lavoro.
 
