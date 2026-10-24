@@ -130,10 +130,10 @@ Origine: baseline Reqvire «Propagation of unexpected failures as exceptions», 
 
 ### Import del codice di produzione nei test per layer
 
-I test di un componente in layer devono importare codice di produzione, anche soltanto per i tipi, secondo il layer provato: i test Domain soltanto dal Domain, i test Application soltanto da Application e Domain, i test di un adapter inbound soltanto dal proprio adapter e da Application, i test di un adapter outbound soltanto dal proprio adapter, da Application e da Domain.
+I test di un componente in layer devono importare codice di produzione, anche soltanto per i tipi, secondo il layer del file che verificano: i test Domain soltanto dal Domain, i test Application soltanto da Application e Domain, i test di un adapter inbound soltanto dal proprio adapter e da Application, i test di un adapter outbound soltanto dal proprio adapter, da Application e da Domain.
 
 #### Details
-Test runner, librerie di asserzione, tecnologie usate dagli adapter e fake locali non sono codice di produzione. Le prove di integrazione della composition root e fra componenti attraversano i layer e restano escluse.
+Il layer provato da un test è quello del file di produzione che il test verifica, cioè della cartella in cui il test risiede accanto a quel file secondo «Suite di test con Vitest». Test runner, librerie di asserzione, tecnologie usate dagli adapter e fake locali non sono codice di produzione. Le prove di integrazione della composition root e fra componenti attraversano i layer e restano escluse.
 
 Origine: baseline Reqvire «Domain test imports», adottata; «Application test imports», adottata; «Inbound adapter test imports», adottata; «Outbound adapter test imports», adottata.
 
@@ -190,10 +190,10 @@ Origine: baseline Reqvire «Pino as technical logger», adottata; «Single-line 
 
 ### Nomi dei file secondo il ruolo architetturale
 
-I file del codice di produzione devono seguire una convenzione esplicita e uniforme che renda riconoscibili i casi d'uso e gli adapter secondo la responsabilità effettivamente realizzata.
+I file del codice di produzione devono seguire una convenzione esplicita e uniforme che renda riconoscibili i casi d'uso, le porte e gli adapter secondo la responsabilità effettivamente realizzata.
 
 #### Details
-Origine: baseline Reqvire «Production file names by architectural role», adattata: senza un suffisso obbligatorio per i file delle porte.
+Origine: baseline Reqvire «Production file names by architectural role», adottata.
 
 #### Metadata
   * type: requirement
@@ -218,6 +218,22 @@ Origine: baseline Reqvire «Logs as the only initial observability signal», ado
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
+### Regole di architettura centrali e bloccanti
+
+Ogni repository di prodotto con regole di architettura sugli import deve tenerle in un'unica fonte centrale della propria suite di test, ciascuna con un nome stabile, controllate a ogni esecuzione della suite sull'intero grafo degli import dei sorgenti e dei test del repository, compresi gli import di soli tipi, con almeno una fixture negativa per regola che fallisce con il nome della regola attesa; un'eccezione deve essere una voce esplicita della configurazione centrale con il nome della regola, l'import ammesso e il motivo, registrata nel contratto delle regole del repository, e l'analisi non deve limitarsi ai file modificati né ridursi ad avvisi.
+
+#### Details
+Si applica al backend e al satellite, che hanno componenti in layer; ciascuno raffina questo requisito con il contratto che elenca i nomi delle proprie regole e le eccezioni ammesse. Una violazione fa fallire la suite di test, quindi la CI e il comando di verifica completo.
+
+Origine: baseline Reqvire «Central blocking architecture rules», adattata: le regole sono controlli della suite Vitest sul testo dei sorgenti invece della configurazione di dependency-cruiser.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
 ### Struttura in layer dei componenti
 
 Ogni componente di Ambrogio organizzato in layer deve collocare regole e stati in Domain, casi d'uso e porte in Application e integrazioni tecniche negli adapter; quando un caso d'uso richiede una capacità tecnica esterna, Application deve dichiarare una porta per quella capacità e un adapter deve realizzarne l'integrazione concreta.
@@ -226,6 +242,22 @@ Ogni componente di Ambrogio organizzato in layer deve collocare regole e stati i
 Il backend e il satellite sono organizzati in layer e raffinano questo requisito; la chat web ha un'architettura propria per funzionalità.
 
 Origine: baseline Reqvire «Domain Application and adapter separation», adottata; «External integration through ports and adapters», adottata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
+### Suite di test con Vitest accanto al codice
+
+Ogni repository di prodotto con componenti in layer deve eseguire la propria suite automatica con Vitest come unico runner, con ogni file di test accanto al file che verifica secondo il contratto «Suite di test con Vitest», selezioni veloci, di integrazione e dei processi compilati separate e tutte comprese nel comando di verifica completo, senza che un file di test sia eseguito da più di una selezione.
+
+#### Details
+Si applica al backend e al satellite, ciascuno dei quali raffina questo requisito con le proprie selezioni e i propri script. Il client terminale e la chat web mantengono la disposizione dei test registrata nei rispettivi contratti.
+
+Origine: baseline Reqvire «Vitest as test runner», adattata: le prove di integrazione usano un database SQLite reale invece di PostgreSQL; i test che non verificano un solo file sorgente, i moduli di supporto condivisi e le prove dell'intero repository hanno cartelle `test/` dedicate.
 
 #### Metadata
   * type: requirement
@@ -244,22 +276,6 @@ Ogni client raffina questo requisito con le Contract References ai contratti del
 #### Concept References
   * [Client conversazionale](../Thesaurus/Lessico.md#client-conversazionale)
   * [Backend](../Thesaurus/Lessico.md#backend)
-
-#### Metadata
-  * type: requirement
-
-#### Relations
-  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
----
-
-### Regole di architettura centrali e bloccanti
-
-Ogni repository di prodotto con regole di architettura sugli import deve tenerle in un'unica fonte centrale della propria suite di test, ciascuna con un nome stabile, controllate a ogni esecuzione della suite sull'intero grafo degli import dei sorgenti e dei test del repository, compresi gli import di soli tipi, con almeno una fixture negativa per regola che fallisce con il nome della regola attesa; un'eccezione deve essere una voce esplicita della configurazione centrale con il nome della regola, l'import ammesso e il motivo, registrata nel contratto delle regole del repository, e l'analisi non deve limitarsi ai file modificati né ridursi ad avvisi.
-
-#### Details
-Si applica al backend e al satellite, che hanno componenti in layer; ciascuno raffina questo requisito con il contratto che elenca i nomi delle proprie regole e le eccezioni ammesse. Una violazione fa fallire la suite di test, quindi la CI e il comando di verifica completo.
-
-Origine: baseline Reqvire «Central blocking architecture rules», adattata: le regole sono controlli della suite Vitest sul testo dei sorgenti invece della configurazione di dependency-cruiser.
 
 #### Metadata
   * type: requirement
