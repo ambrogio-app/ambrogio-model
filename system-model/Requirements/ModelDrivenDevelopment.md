@@ -321,12 +321,12 @@ Origine: baseline Reqvire «Normative wording of obligations», adattata: le for
 
 ### Installazione delle dipendenze con pnpm attivato da Corepack
 
-Ogni repository di prodotto deve installare le proprie dipendenze con pnpm alla versione esatta dichiarata nel campo `packageManager` del proprio `package.json`, dal lockfile versionato e senza modificarlo; la CI e la build delle immagini container devono attivare quella versione di pnpm con Corepack, senza installarne un'altra.
+Ogni repository di prodotto deve installare le proprie dipendenze con pnpm alla versione esatta dichiarata nel campo `packageManager` del proprio `package.json`, dal lockfile versionato e senza modificarlo; la CI e la build delle immagini container devono attivare quella versione di pnpm con Corepack, senza installarne un'altra. I manifest devono dichiarare ogni dipendenza diretta, di esecuzione e di sviluppo, con una versione esatta senza intervalli; l'installazione deve eseguire gli script di build soltanto per i pacchetti elencati per nome nella configurazione del repository e deve rifiutare le versioni pubblicate da meno dell'attesa minima configurata, salvo le versioni elencate singolarmente come eccezioni.
 
 #### Details
 Ogni repository di prodotto raffina questo requisito con la propria versione di pnpm e le proprie regole di installazione. In sviluppo si usa la stessa versione esatta di pnpm, attivata con Corepack o installata separatamente. Un repository che prepara un altro repository affiancato, come il backend nella CI dei client, esegue pnpm nella cartella di quel repository, così che Corepack usi la versione dichiarata da quel repository.
 
-Origine: baseline Reqvire «pnpm as package manager», adottata.
+Origine: baseline Reqvire «pnpm as package manager», adottata; «Exact dependency versions», adattata: i package interni del workspace del backend si dichiarano con il protocollo `workspace:*` invece che con una versione; «Allowlisted dependency build scripts», adottata; «Controlled installation of new releases», adottata.
 
 #### Metadata
   * type: requirement
