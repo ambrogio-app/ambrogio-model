@@ -21,7 +21,7 @@ L'ispezione passa se i workflow dichiarano trigger, permessi, action fissate, ru
 #### Relations
   * derivedFrom: [Verifica degli strumenti e dei workflow di ambrogio-model](#verifica-degli-strumenti-e-dei-workflow-di-ambrogio-model)
   * verify: [Controlli CI dei repository di Ambrogio](../Requirements/ModelDrivenDevelopment.md#controlli-ci-dei-repository-di-ambrogio)
-  * verify: [Controlli del modello prima del commit in ambrogio-model](../Requirements/ModelDrivenDevelopment.md#controlli-del-modello-prima-del-commit-in-ambrogio-model)
+  * verify: [Controlli del modello prima del commit](../Requirements/ModelDrivenDevelopment.md#controlli-del-modello-prima-del-commit)
   * verify: [Controllo dei segreti prima del commit](../Requirements/ModelDrivenDevelopment.md#controllo-dei-segreti-prima-del-commit)
   * verify: [Scansione dei segreti nella CI](../Requirements/ModelDrivenDevelopment.md#scansione-dei-segreti-nella-ci)
   * verify: [Workflow GitHub Actions con privilegi e durata limitati](../Requirements/ModelDrivenDevelopment.md#workflow-github-actions-con-privilegi-e-durata-limitati)

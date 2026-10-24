@@ -38,7 +38,7 @@ const history = new RegExp(`\\b\\d{4}-\\d{2}-\\d{2}\\b|\\b\\d{1,2} (?:${months})
 const modal = /(?<![\p{L}\p{N}_])(?:può|possono|potrebbe|potrebbero|dovrebbe|dovrebbero|eventualmente|may|might|could|should|possibly)(?![\p{L}\p{N}_])/giu;
 const quoted = /`[^`]*`|«[^»]*»|"[^"\n]*"|“[^”]*”/gu;
 const governed = [
-  /^\.github\/workflows\//,
+  /^\.github\/(?!.*\.(?:svg|png|jpe?g|gif|webp|ico)$)/,
   /^\.githooks\//,
   /^scripts\//,
   /(^|\/)Dockerfile[^/]*$/,
