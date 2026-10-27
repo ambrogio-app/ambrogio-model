@@ -9,7 +9,8 @@ Ambrogio è descritto da un solo modello Reqvire distribuito sui repository del 
 ├── ambrogio-satellite/  satellite vocale
 ├── ambrogio-cli/        client terminale
 ├── ambrogio-web/        chat web facoltativa
-└── ambrogio-docs/       documentazione utente (sito Astro Starlight, in inglese, senza modello)
+├── ambrogio-docs/       documentazione utente (sito Astro Starlight, in inglese, senza modello)
+└── ambrogio-homelab-example/  esempio completo d'installazione domestica con Compose e agenti (in inglese, senza modello)
 ```
 
 Le istruzioni di ciascun repository restano autorevoli per il lavoro al suo interno:
@@ -30,6 +31,7 @@ Le istruzioni di ciascun repository restano autorevoli per il lavoro al suo inte
 - I contratti esterni al prodotto (servizi, protocolli e API di altri proprietari, modelli scaricati o distribuiti da fonti esterne) si registrano nel repository che li usa come elementi `type: source` con la versione da cui dipende, l'origine dell'informazione e la prova d'integrazione; i requisiti li citano con Contract References senza ripeterne la versione, e aggiornare la versione è una modifica esplicita dell'elemento con la prova ripetuta. Le librerie npm restano governate da versioni esatte, lockfile congelato e audit.
 - Un cambiamento che tocca più repository usa lo stesso nome di branch in ciascuno; le pull request si integrano in ordine di dipendenza, a partire da `ambrogio-model`.
 - `ambrogio-docs` non ha un modello: descrive installazione, configurazione, architettura e funzionamento per chi installa Ambrogio in casa, e ogni fatto documentato deriva dal modello e dal codice. Quando cambia un comportamento pubblico, una configurazione, un limite, un messaggio o una versione compatibile, si aggiornano nello stesso lavoro le pagine interessate di `ambrogio-docs` (in particolare `reference/` e `reference/versions.md`) e si esegue `npm run build`.
+- `ambrogio-homelab-example` non ha un modello: è un esempio d'installazione completa, con un Compose per servizio e i file degli agenti, derivato dall'installazione di riferimento senza i suoi dati. Non segue ogni release, come dice il suo README; quando lo si aggiorna, `scripts/check` ne valida i Compose e carica gli agenti con la release del backend indicata in `.env.example`.
 - La visibilità dei repository su GitHub è una decisione della persona: non renderli pubblici né cambiarne la visibilità.
 
 ## Reqvire: solo CLI
