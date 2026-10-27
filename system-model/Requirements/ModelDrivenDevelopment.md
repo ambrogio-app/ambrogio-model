@@ -18,12 +18,14 @@ Origine: baseline Reqvire «Dependency vulnerability audit», adattata: senza l'
 
 ### Comando di verifica completo
 
-Ogni repository di prodotto deve offrire un unico comando che esegue in locale, nell'ordine della CI del repository, i controlli dell'intero modello, l'installazione congelata delle dipendenze, l'audit delle dipendenze, il controllo TypeScript, la suite di test, la build e, nei client, la preparazione del backend affiancato e le prove di integrazione contro di esso; il comando deve terminare con esito non riuscito al primo controllo fallito o quando manca una risorsa richiesta, come `ambrogio-model` o il backend affiancato o gitleaks, senza saltare in silenzio un controllo.
+Ogni repository di prodotto deve offrire un unico comando che esegue in locale, nell'ordine della CI del repository, i controlli dell'intero modello, l'installazione congelata delle dipendenze, l'audit delle dipendenze, il controllo TypeScript, la suite di test, la build e, nei client, la preparazione del backend affiancato e le prove di integrazione contro di esso; il comando deve terminare con esito non riuscito al primo controllo fallito o quando manca una risorsa richiesta, come `ambrogio-model`, il backend affiancato, gitleaks o il database PostgreSQL di prova, senza saltare in silenzio un controllo.
 
 #### Details
 Il comando permette di eseguire prima di un push gli stessi controlli della CI secondo «Controlli prima dell'integrazione». Le regole di architettura con le loro fixture negative fanno parte della suite di test.
 
-Origine: baseline Reqvire «Complete verification command», adattata: i passi sono quelli della CI di ciascun repository; Ambrogio non ha un linter del codice né suite su un database esterno, e le regole di architettura girano nella suite di test.
+Le prove che usano PostgreSQL, nel backend e nelle prove di integrazione dei client contro il backend affiancato, richiedono un server PostgreSQL di prova; `scripts/test-postgres` lo avvia in locale come in CI, così che il comando non dipenda da un database installato a mano.
+
+Origine: baseline Reqvire «Complete verification command», adattata: i passi sono quelli della CI di ciascun repository; Ambrogio non ha un linter del codice, e le regole di architettura girano nella suite di test.
 
 #### Metadata
   * type: requirement
@@ -34,6 +36,7 @@ Origine: baseline Reqvire «Complete verification command», adattata: i passi s
   * [Profilo di installazione con pnpm e Corepack](../Contracts/ModelDrivenDevelopment.md#profilo-di-installazione-con-pnpm-e-corepack)
 
 #### Relations
+  * satisfiedBy: [test-postgres](../../scripts/test-postgres)
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 

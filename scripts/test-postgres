@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# test-postgres — the PostgreSQL test server of the workspace, as CI provides it to the jobs.
+#
+#   test-postgres start   start the container ambrogio-test-postgres, or reuse it when it is running,
+#                         wait until it accepts connections and print the line to export:
+#                         AMBROGIO_TEST_DATABASE_URL=postgres://postgres@127.0.0.1:<port>/postgres
+#   test-postgres stop    remove the container
+#
+# The port is AMBROGIO_TEST_POSTGRES_PORT, 55432 when unset, published on 127.0.0.1 only. The server
+# trusts every connection: it holds only the databases the tests create and drop. Requires Docker.
+set -euo pipefail
+NAME=ambrogio-test-postgres
+IMAGE=pgvector/pgvector:pg18
+PORT="${AMBROGIO_TEST_POSTGRES_PORT:-55432}"
+
+case "${1:-}" in
+  start)
+    if [ -z "$(docker ps --quiet --filter "name=^${NAME}$")" ]; then
+      docker rm --force "$NAME" >/dev/null 2>&1 || true
+      docker run --detach --name "$NAME" --publish "127.0.0.1:${PORT}:5432" \
+        --env POSTGRES_HOST_AUTH_METHOD=trust "$IMAGE" >/dev/null
+    fi
+    PORT="$(docker port "$NAME" 5432/tcp | head -n 1 | sed 's/.*://')"
+    for _ in $(seq 1 60); do
+      # The image restarts the server once after initialization: wait for the final one.
+      if docker exec "$NAME" pg_isready --host 127.0.0.1 --username postgres --quiet \
+        && [ "$(docker logs "$NAME" 2>&1 | grep --count 'PostgreSQL init process complete')" -gt 0 ]; then
+        echo "AMBROGIO_TEST_DATABASE_URL=postgres://postgres@127.0.0.1:${PORT}/postgres"
+        exit 0
+      fi
+      sleep 1
+    done
+    echo "test-postgres: $NAME does not accept connections" >&2
+    exit 1 ;;
+  stop)
+    docker rm --force "$NAME" >/dev/null 2>&1 || true ;;
+  *)
+    echo "usage: test-postgres start|stop" >&2
+    exit 2 ;;
+esac

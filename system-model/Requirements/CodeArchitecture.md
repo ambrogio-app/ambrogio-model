@@ -5,7 +5,7 @@
 Quando una garanzia di un adapter dipende da una tecnologia concreta, i test che la dimostrano devono esercitare il contratto pubblico dell'adapter contro quella tecnologia, con oracoli di lettura e di scrittura indipendenti dal codice provato, senza mock profondi e senza considerare prova il solo giro di andata e ritorno; i test di un trasporto inbound devono provare lettura, validazione, invocazione, uscita ed errori attraverso il framework reale del trasporto con un caso d'uso controllato, senza considerare prova la chiamata diretta di un gestore.
 
 #### Details
-I test dei soli mapping e quelli dell'intero confine restano livelli distinti. Si applica ai repository di prodotto con adapter o trasporti: il backend per l'archivio SQLite, il server HTTP e le sessioni WebSocket; il satellite per il canale conversazionale e i modelli ONNX; i client testuali per i propri adapter verso il backend.
+I test dei soli mapping e quelli dell'intero confine restano livelli distinti. Si applica ai repository di prodotto con adapter o trasporti: il backend per l'archivio PostgreSQL, il server HTTP e le sessioni WebSocket; il satellite per il canale conversazionale e i modelli ONNX; i client testuali per i propri adapter verso il backend.
 
 Origine: baseline Reqvire «Adapters tested at the real boundary», adattata: le tecnologie che richiedono periferiche fisiche, come l'audio del satellite, o servizi esterni con credenziali, come i fornitori dei modelli linguistici, si provano con dimostrazioni registrate nel modello o con l'ingresso di prova pubblico del backend invece che nella suite automatica; «Transports tested with their real framework», adattata: la regola sugli ingressi equivalenti di trasporti diversi per la stessa intenzione non si applica, perché ogni intenzione del backend ha un solo trasporto.
 
@@ -370,7 +370,7 @@ Ogni repository di prodotto con componenti in layer deve eseguire la propria sui
 #### Details
 Si applica al backend e al satellite, ciascuno dei quali raffina questo requisito con le proprie selezioni e i propri script. Il client terminale e la chat web mantengono la disposizione dei test registrata nei rispettivi contratti.
 
-Origine: baseline Reqvire «Vitest as test runner», adattata: le prove di integrazione usano un database SQLite reale invece di PostgreSQL; i test che non verificano un solo file sorgente, i moduli di supporto condivisi e le prove dell'intero repository hanno cartelle `test/` dedicate.
+Origine: baseline Reqvire «Vitest as test runner», adattata: i test che non verificano un solo file sorgente, i moduli di supporto condivisi e le prove dell'intero repository hanno cartelle `test/` dedicate.
 
 #### Metadata
   * type: requirement
