@@ -57,11 +57,11 @@ La configurazione Pino del logger di base sostituisce con `[redacted]` il valore
 
 Ogni file di test TypeScript termina con `.spec.ts` e risiede nella cartella `src/` del file sorgente che verifica, accanto a quel file. Il nome del test è il nome del file verificato senza l'estensione `.ts`, seguito, quando più file di test verificano lo stesso file, da un aspetto separato da un punto e infine da `.spec.ts`: per esempio `exchange-turn.use-case.spec.ts` verifica `exchange-turn.use-case.ts` e `conversation-server.session-lifecycle.spec.ts` verifica `conversation-server.ts`. Un file di test verifica un solo file sorgente, attraverso le sue interfacce; le prove di più file sorgenti si dividono in un file di test per ciascuno.
 
-I file che esercitano un adapter contro un database SQLite reale terminano con `.integration.spec.ts`; i file che avviano artefatti compilati in un processo figlio terminano con `.e2e.spec.ts`. Nessun nome di file di test porta un qualificatore di layer, come `domain`, `application`, `inbound`, `outbound` o `unit`; il suffisso di ruolo del file verificato, come `.use-case` o `.adapter`, fa parte del nome di quel file e resta nel nome del test.
+I file che usano un database PostgreSQL reale, perché esercitano un adapter di persistenza o attraversano l'archivio di un'applicazione, terminano con `.integration.spec.ts`; i file che avviano artefatti compilati in un processo figlio terminano con `.e2e.spec.ts`. Nessun nome di file di test porta un qualificatore di layer, come `domain`, `application`, `inbound`, `outbound` o `unit`; il suffisso di ruolo del file verificato, come `.use-case` o `.adapter`, fa parte del nome di quel file e resta nel nome del test.
 
 I test che non verificano un solo file sorgente risiedono fuori da `src/`, in cartelle `test/` dedicate:
 
-- `test/support/` di ciascuna unità con test contiene i moduli di supporto condivisi dai suoi test, come fixture, fake e client di protocollo, e nessun file `.spec.ts`;
+- `test/support/` di ciascuna unità con test contiene i moduli di supporto condivisi dai suoi test, come fixture, fake e client di protocollo, e nessun file `.spec.ts`; `test/support/` nella radice del repository contiene allo stesso modo i moduli di supporto condivisi dai test di più unità;
 - `test/<artefatto>/` di un'unità contiene i test di un artefatto del repository che non è codice TypeScript dell'unità e che l'unità usa, come lo schema pubblicato di un protocollo o le configurazioni d'esempio;
 - `test/repository/` nella radice del repository contiene i test dell'intero repository, come le regole di architettura con le loro fixture negative, i workflow, l'hook pre-commit e le proprietà comuni a più unità, con i loro moduli di supporto.
 

@@ -40,6 +40,8 @@ Lo script `verify` del `package.json` di ogni repository di prodotto si esegue c
 
 Il requisito di ogni repository di prodotto che raffina «Comando di verifica completo» elenca i comandi del punto 5. La suite di test fallisce se gitleaks non è nel `PATH`, perché prova l'hook pre-commit.
 
+Le prove che usano PostgreSQL leggono l'URL di un server PostgreSQL di prova dalla variabile `AMBROGIO_TEST_DATABASE_URL`, senza valore predefinito, e falliscono se manca o se il server non risponde. Il ruolo dell'URL ha il permesso di creare e cancellare database: le prove vi creano soltanto database propri e cancellano soltanto quelli. In CI il server è un servizio del job con l'immagine `pgvector/pgvector:pg18`, autenticazione `trust` e la variabile `postgres://postgres@127.0.0.1:5432/postgres`. In locale `ambrogio-model/scripts/test-postgres start` avvia, o riusa se è già attivo, il container `ambrogio-test-postgres` con la stessa immagine e la stessa autenticazione, pubblicato soltanto su `127.0.0.1` alla porta `AMBROGIO_TEST_POSTGRES_PORT`, `55432` se la variabile manca, attende che accetti connessioni e stampa la riga `AMBROGIO_TEST_DATABASE_URL=postgres://postgres@127.0.0.1:<porta>/postgres` da esportare; `scripts/test-postgres stop` rimuove il container. Lo script richiede Docker e non tocca altri container.
+
 #### Metadata
   * type: specification
 
@@ -131,7 +133,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 - «Business module autonomy»: il backend ha un solo modulo business.
 - «Domain events»: il Domain non registra eventi delle proprie transizioni.
 - «Open-core editions»: Ambrogio ha una sola edizione open source con licenza MIT, senza parti proprietarie.
-- «PostgreSQL persistence with Kysely»: il backend conserva le conversazioni in SQLite incorporato.
+- «SQLite persistence with Kysely»: il backend conserva le conversazioni in PostgreSQL, secondo «PostgreSQL persistence with Kysely».
 - «Unit of Work»: nessun caso d'uso richiede l'atomicità di più operazioni di porta; ogni transizione persistente è una sola operazione della porta di scrittura.
 
 #### Decisioni esaminate e non adottate
@@ -143,6 +145,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 - «References between aggregates by identity»: il Domain ha un solo tipo di aggregato.
 - «Independent graph per process»: ogni componente esegue un solo processo.
 - «Instance lifetime by need»: dipende da un contesto del chiamante e da una Unit of Work, non adottati.
+- «Module views over one shared database resource»: il backend ha un solo modulo business, che possiede tutte le tabelle del database e riceve l'intera risorsa.
 - «Canonical value normalized once by its owner»: nessun valore business ha una forma canonica; il testo dei turni è conservato invariato e gli identificativi sono opachi.
 
 #### Metadata
