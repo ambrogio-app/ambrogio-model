@@ -1,6 +1,6 @@
 # Ambrogio model
 
-**Ambrogio**: talk to it like Alexa, chat with it like ChatGPT — one self-hosted AI assistant for your whole homelab. Through agents you configure, it can control the house, play music, check the weather and read your documents, using the services you already host.
+**Ambrogio**: talk to it like Alexa, chat with it like ChatGPT — one self-hosted AI assistant for your whole homelab. Multi-agent by design: each agent you configure handles one job, such as the house, music, weather or your documents, using the services you already host.
 
 Product-wide part of the Reqvire engineering model of Ambrogio, and the tools that check the model across repositories.
 
