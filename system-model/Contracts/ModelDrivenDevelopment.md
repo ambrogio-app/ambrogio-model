@@ -138,7 +138,7 @@ Fonte: baseline Reqvire, repository https://github.com/adrianofoschi/reqvire-bas
 
 #### Decisioni esaminate e non adottate
 - «Drain of accepted requests on shutdown»: all'arresto i turni in corso sono interrotti, secondo «Interruption of active operations on shutdown».
-- «OpenAPI contract generated from the routes»: non adottata per decisione della persona; l'API HTTP pubblica è descritta dai contratti del modello e dal riferimento delle API HTTP di `ambrogio-docs`, il protocollo dallo schema JSON pubblicato.
+- «OpenAPI contract generated from the routes»: non adottata per decisione della persona; l'API HTTP pubblica è descritta dai contratti del modello, il protocollo dallo schema JSON pubblicato.
 - «MCP for model authoring and CLI for repeatable checks»: il modello si legge e si modifica soltanto con la CLI Reqvire.
 - «Protected HTTP surface by default»: non adottata, perché il backend non ha autenticazione applicativa; l'accesso al backend è limitato dalla rete dell'installazione e dal reverse proxy.
 - «No save after refused creation»: la creazione di un turno non prevede rifiuti; i dati non validi sono rifiutati prima del Domain.
