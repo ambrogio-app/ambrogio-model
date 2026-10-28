@@ -59,7 +59,7 @@ Programma con cui la famiglia conversa con Ambrogio comunicando con il backend s
 
 ### Connettore MCP
 
-Agente specializzato di Ambrogio configurato con un modello linguistico e un collegamento client a un server MCP. Usa i tool di quel server per svolgere compiti affidati dall'orchestratore durante la conversazione. Memory e Home Assistant sono i connettori di base della prima versione.
+Agente specializzato di Ambrogio configurato con un modello linguistico e un collegamento client a un server MCP. Usa i tool di quel server per svolgere compiti affidati dall'orchestratore durante la conversazione. Memory è il connettore di cui Ambrogio fornisce anche il server MCP; gli altri usano server MCP di terzi, come quelli degli esempi distribuiti.
 
 #### Metadata
   * type: concept

@@ -52,7 +52,7 @@ Quando la voce è abilitata nell'installazione, la famiglia conversa a voce con 
 
 ### Estensione tramite connettori MCP
 
-Chi installa Ambrogio può rendere disponibili nuove capacità alla famiglia aggiungendo connettori a server MCP tramite configurazione. Il progetto può fornire configurazioni pronte per i connettori di base.
+Chi installa Ambrogio può rendere disponibili nuove capacità alla famiglia aggiungendo connettori a server MCP tramite configurazione. Il progetto fornisce configurazioni d'esempio per server MCP di terzi diffusi negli homelab, come Home Assistant per i dispositivi della casa, Music Assistant per la musica e OpenCloud per i documenti, che chi installa completa con gli indirizzi e le credenziali della propria installazione.
 
 #### Concept References
   * [Connettore MCP](../Thesaurus/Lessico.md#connettore-mcp)
@@ -63,21 +63,6 @@ Chi installa Ambrogio può rendere disponibili nuove capacità alla famiglia agg
 
 #### Relations
   * derivedFrom: [Assistenza personale domestica](#assistenza-personale-domestica)
----
-
-### Interazione domestica tramite Home Assistant
-
-La famiglia può consultare informazioni e richiedere azioni sui dispositivi disponibili in Home Assistant durante le conversazioni con Ambrogio. Home Assistant è uno dei due connettori di base della prima versione.
-
-#### Concept References
-  * [Famiglia](../Thesaurus/Lessico.md#famiglia)
-  * [Connettore MCP](../Thesaurus/Lessico.md#connettore-mcp)
-
-#### Metadata
-  * type: capability
-
-#### Relations
-  * derivedFrom: [Estensione tramite connettori MCP](#estensione-tramite-connettori-mcp)
 ---
 
 ### Memoria delle conversazioni
