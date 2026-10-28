@@ -168,14 +168,14 @@ Il file `.reqvire-version` di `ambrogio-model` contiene la versione esatta di Re
 
 ### Ruleset del branch principale
 
-Ogni repository di Ambrogio ha un ruleset di branch chiamato `main`, con applicazione `active`, che ha come destinazione il branch predefinito, nessun attore escluso e le regole:
+Ogni repository pubblico di Ambrogio ha un ruleset di branch chiamato `main`, con applicazione `active`, che ha come destinazione il branch predefinito, nessun attore escluso e le regole:
 
 - `pull_request`, che ammette l'integrazione solo tramite pull request, con `required_approving_review_count` uguale a 0;
 - `required_status_checks`, con il job dei controlli della CI e il job della scansione dei segreti del repository prodotti da GitHub Actions e `strict_required_status_checks_policy` uguale a `false`;
 - `non_fast_forward`, che vieta la riscrittura forzata;
 - `deletion`, che vieta la cancellazione del branch.
 
-In `ambrogio-model` i controlli richiesti sono `Model checks` e `Gitleaks`. Ogni repository di prodotto nomina i propri controlli richiesti nel contratto del proprio ruleset.
+In `ambrogio-model` i controlli richiesti sono `Model checks` e `Gitleaks`. Ogni repository di prodotto nomina i propri controlli richiesti nel contratto del proprio ruleset. In `ambrogio-docs` sono `Type-check, build and check links` e `Gitleaks`, in `ambrogio-app.github.io` `Type-check and build` e `Gitleaks`.
 
 #### Metadata
   * type: specification
