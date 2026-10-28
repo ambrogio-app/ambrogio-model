@@ -50,6 +50,21 @@ Quando la voce è abilitata nell'installazione, la famiglia conversa a voce con 
   * derivedFrom: [Conversazione familiare](#conversazione-familiare)
 ---
 
+### Conversazione dall'app mobile
+
+La famiglia conversa con Ambrogio da un'app per Android e iOS, client conversazionale che usa il protocollo conversazionale come gli altri client e continua le stesse conversazioni.
+
+#### Details
+Capability prevista e non ancora realizzata: nessun repository ne specifica i requisiti. Lo stato `draft` la distingue dalle capability realizzate, e il sito la presenta soltanto come futura.
+
+#### Metadata
+  * type: capability
+  * status: draft
+
+#### Relations
+  * derivedFrom: [Conversazione familiare](#conversazione-familiare)
+---
+
 ### Estensione tramite connettori MCP
 
 Chi installa Ambrogio può rendere disponibili nuove capacità alla famiglia aggiungendo connettori a server MCP tramite configurazione. Il progetto fornisce configurazioni d'esempio per server MCP di terzi diffusi negli homelab, come Home Assistant per i dispositivi della casa, Music Assistant per la musica e OpenCloud per i documenti, che chi installa completa con gli indirizzi e le credenziali della propria installazione.
@@ -79,4 +94,3 @@ La famiglia può porre domande che richiedono informazioni contenute nelle conve
 #### Relations
   * derivedFrom: [Estensione tramite connettori MCP](#estensione-tramite-connettori-mcp)
 ---
-

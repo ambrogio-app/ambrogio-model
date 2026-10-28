@@ -78,10 +78,10 @@ Origine: baseline Reqvire «External contracts recorded with their version», ad
 
 ### Controlli CI dei repository di Ambrogio
 
-Quando viene eseguito un push sul branch principale, viene proposta o aggiornata una pull request, viene richiesta un'esecuzione manuale o un altro workflow la richiama, la CI di ogni repository di Ambrogio deve scaricare affiancati gli altri repository del modello, ciascuno sul branch con lo stesso nome della modifica se esiste e altrimenti su `main`, ed eseguire i controlli dell'intero modello e, nei repository di prodotto, il controllo TypeScript, la suite di test, comprese le prove di integrazione contro i repository affiancati, e la build, e deve fallire se uno di questi controlli fallisce.
+Quando viene eseguito un push sul branch principale, viene proposta o aggiornata una pull request, viene richiesta un'esecuzione manuale o un altro workflow la richiama, la CI di ogni repository del modello deve scaricare affiancati gli altri repository del modello, ciascuno sul branch con lo stesso nome della modifica se esiste e altrimenti su `main`, ed eseguire i controlli dell'intero modello e, nei repository di prodotto, il controllo TypeScript, la suite di test, comprese le prove di integrazione contro i repository affiancati, e la build, e deve fallire se uno di questi controlli fallisce.
 
 #### Details
-Ogni repository di prodotto raffina questo requisito con i nomi dei propri job e i passi propri, e ne ripete i controlli in locale con il comando di verifica completo. In `ambrogio-model` la CI esegue i controlli del modello e, per una pull request, riporta l'analisi d'impatto composita nel riepilogo del job.
+Ogni repository di prodotto raffina questo requisito con i nomi dei propri job e i passi propri, e ne ripete i controlli in locale con il comando di verifica completo. In `ambrogio-model` la CI esegue i controlli del modello e, per una pull request, riporta l'analisi d'impatto composita nel riepilogo del job. I repository senza modello, come la documentazione, il sito e l'esempio d'installazione, eseguono nella propria CI i controlli indicati nelle loro istruzioni.
 
 Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: la CI lavora sul checkout affiancato dei repository del modello e comprende le prove di integrazione fra repository.
 
@@ -123,10 +123,10 @@ Origine: baseline Reqvire «Model checks before commit», adattata: l'hook di un
 
 ### Controlli obbligatori prima del merge
 
-Quando una modifica viene integrata nel branch principale di un repository di Ambrogio, il repository GitHub deve accettarla soltanto tramite una pull request i cui controlli della CI e scansione dei segreti sono superati, e deve rifiutare il push diretto, la riscrittura forzata e la cancellazione del branch principale.
+Quando una modifica viene integrata nel branch principale di un repository pubblico di Ambrogio, il repository GitHub deve accettarla soltanto tramite una pull request i cui controlli della CI e scansione dei segreti sono superati, e deve rifiutare il push diretto, la riscrittura forzata e la cancellazione del branch principale; in un repository privato ogni modifica deve comunque essere integrata tramite una pull request con la scansione dei segreti superata.
 
 #### Details
-La regola vale per chiunque, amministratori compresi: ogni modifica passa da un branch e da una pull request, così che CI e scansione dei segreti precedano sempre l'integrazione. Ogni repository di prodotto registra i nomi dei propri controlli richiesti.
+La regola vale per chiunque, amministratori compresi: ogni modifica passa da un branch e da una pull request, così che CI e scansione dei segreti precedano sempre l'integrazione. Ogni repository di prodotto registra i nomi dei propri controlli richiesti. Il piano GitHub dell'organizzazione non offre i ruleset sui repository privati, come `ambrogio-brand` e `ambrogio-video`: lì l'integrazione tramite pull request è una regola di lavoro e non un vincolo del repository.
 
 Origine: baseline Reqvire «Blocking CI checks on proposed changes», adattata: l'impedimento dell'integrazione è realizzato da un ruleset GitHub che richiede anche la scansione dei segreti.
 
@@ -362,6 +362,37 @@ Origine: baseline Reqvire «pnpm as package manager», adottata; «Exact depende
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
+### Licenza MIT del progetto
+
+Ogni repository di Ambrogio deve essere distribuito con la licenza MIT, con il testo della licenza nel file `LICENSE` alla radice del repository; i contenuti di terzi inclusi in un repository, come font e loghi di altri proprietari, devono conservare la propria licenza ed essere indicati con la loro origine nel README del repository.
+
+#### Details
+La licenza vale per l'intero progetto, compresi i repository senza modello, pubblici o privati, come la documentazione, il sito, il marchio e il video dimostrativo. Un font distribuito con la SIL Open Font License o il logo di un servizio di terzi restano dei loro proprietari e non diventano MIT.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * satisfiedBy: [AGENTS.md](../../AGENTS.md)
+  * satisfiedBy: [LICENSE](../../LICENSE)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Marchio da un'unica fonte
+
+Logo, scritta, palette, font e forme di Ambrogio devono avere come unica fonte il repository privato `ambrogio-brand`: gli altri repository devono tenerne copie fatte con lo script `scripts/sync` di `ambrogio-brand` e non devono modificarle sul posto, una modifica del marchio deve essere fatta prima in `ambrogio-brand` e poi copiata, sullo stesso branch, nei repository che ricevono la copia, con `scripts/sync --check` superato, e il sito e la documentazione devono avere soltanto il tema chiaro.
+
+#### Details
+`ambrogio-brand` non ha un modello. Le copie servono perché la CI dei repository pubblici non legge un repository privato. La chat web fa eccezione alla regola del tema: segue il tema chiaro o scuro del dispositivo secondo il contratto della propria schermata.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * satisfiedBy: [AGENTS.md](../../AGENTS.md)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Modello modificato soltanto con la CLI Reqvire
 
 Ogni lettura, modifica e controllo del modello di Ambrogio, in locale e in CI, deve avvenire con la CLI Reqvire eseguita sulla cartella di lavoro, senza server MCP Reqvire; quando la CLI non offre l'operazione richiesta, la modifica diretta dei file Markdown del modello deve essere seguita da `format`, `validate` e `lint`.
@@ -465,12 +496,27 @@ Origine: baseline Reqvire «Agreed technical choices», adottata; «Explicit sup
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
+### Sito del progetto coerente con documentazione e modello
+
+Ogni affermazione sul prodotto del sito del progetto `ambrogio-app.github.io` deve concordare con `ambrogio-docs` e con il modello, una capability in stato `draft` deve esservi presentata soltanto come futura, e quando cambia una funzionalità descritta nel sito lo stesso lavoro deve aggiornarne la pagina ed eseguirne la build.
+
+#### Details
+Il sito non ha un modello: è la pagina d'ingresso del progetto, con ciò che Ambrogio fa e i collegamenti alla documentazione e ai repository, mentre i fatti dettagliati restano in `ambrogio-docs`.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * satisfiedBy: [AGENTS.md](../../AGENTS.md)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
 ### Un solo modello attraverso i repository
 
 Il modello Reqvire di Ambrogio deve essere uno solo, formato dalle cartelle `system-model/` di `ambrogio-model` e dei repository di prodotto affiancati in una cartella di lavoro, e deve essere letto, modificato e validato da quella cartella con collegamenti diretti fra repository; le dipendenze fra repository devono restare senza cicli, con `ambrogio-model` che non si collega a nessun repository di prodotto e il backend che non si collega ai client, e una modifica che tocca più repository deve usare lo stesso nome di branch in ciascuno.
 
 #### Details
-Un requisito di un client si collega al contratto del backend da cui dipende; un requisito locale raffina con `derivedFrom` la decisione comune di `ambrogio-model`. Nessun repository fissa una revisione di un altro, e le interfacce pubbliche del backend non hanno versioni coesistenti, secondo «Compatibilità fra release per versione d'interfaccia». Le pull request di una modifica che tocca più repository si integrano in ordine di dipendenza, a partire da `ambrogio-model`. `ambrogio-docs` non ha un modello e non fa parte del grafo. Con un solo grafo, validazione, copertura e analisi d'impatto vedono insieme gli obblighi di tutti i repository.
+Un requisito di un client si collega al contratto del backend da cui dipende; un requisito locale raffina con `derivedFrom` la decisione comune di `ambrogio-model`. Nessun repository fissa una revisione di un altro, e le interfacce pubbliche del backend non hanno versioni coesistenti, secondo «Compatibilità fra release per versione d'interfaccia». Le pull request di una modifica che tocca più repository si integrano in ordine di dipendenza, a partire da `ambrogio-model`. `ambrogio-docs`, `ambrogio-homelab-example`, il sito `ambrogio-app.github.io`, il marchio `ambrogio-brand` e il video `ambrogio-video` non hanno un modello e non fanno parte del grafo. Con un solo grafo, validazione, copertura e analisi d'impatto vedono insieme gli obblighi di tutti i repository.
 
 Le letture del modello con Reqvire si eseguono con `scripts/rv`, che usa la stessa copia temporanea dei controlli e rifiuta i comandi che modificano il modello; le modifiche con la CLI si eseguono sulla cartella di lavoro.
 

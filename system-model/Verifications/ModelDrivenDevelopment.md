@@ -213,3 +213,20 @@ L'ispezione passa se la release dichiara le versioni d'interfaccia offerte o usa
   * derivedFrom: [Verifica del governo del modello](#verifica-del-governo-del-modello)
   * verify: [Compatibilità fra release per versione d'interfaccia](../Requirements/ModelDrivenDevelopment.md#compatibilità-fra-release-per-versione-dinterfaccia)
 ---
+
+### Ispezione di licenze, sito e marchio
+
+Durante la revisione di ogni pull request che tocca un repository di Ambrogio, controllare il file `LICENSE` e i contenuti di terzi aggiunti, leggere le affermazioni sul prodotto aggiunte o modificate nel sito e confrontarle con `ambrogio-docs` e con il modello, ed eseguire dalla cartella di lavoro `ambrogio-brand/scripts/sync --check` quando la modifica tocca il marchio o una sua copia.
+
+#### Details
+L'ispezione passa se il repository ha il testo della licenza MIT in `LICENSE`, se ogni contenuto di terzi conserva la propria licenza ed è indicato con la sua origine nel README, se ogni affermazione del sito concorda con la documentazione e con il modello e presenta come futura soltanto una capability in stato `draft`, se `sync --check` è superato e se sito e documentazione hanno soltanto il tema chiaro. Fallisce se una di queste condizioni manca. Non automatizzabile: stabilire se un'affermazione concorda con la documentazione o se un contenuto è di terzi richiede di leggerli, e `sync --check` non può essere eseguito dalla CI dei repository pubblici, che non legge il repository privato `ambrogio-brand`.
+
+#### Metadata
+  * type: inspection-verification
+
+#### Relations
+  * derivedFrom: [Verifica del governo del modello](#verifica-del-governo-del-modello)
+  * verify: [Licenza MIT del progetto](../Requirements/ModelDrivenDevelopment.md#licenza-mit-del-progetto)
+  * verify: [Marchio da un'unica fonte](../Requirements/ModelDrivenDevelopment.md#marchio-da-ununica-fonte)
+  * verify: [Sito del progetto coerente con documentazione e modello](../Requirements/ModelDrivenDevelopment.md#sito-del-progetto-coerente-con-documentazione-e-modello)
+---
