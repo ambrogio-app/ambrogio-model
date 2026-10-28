@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.svg" alt="Ambrogio" width="160">
+</p>
+
 # Ambrogio model
 
 **Ambrogio**: talk to it like Alexa, chat with it like ChatGPT — one self-hosted AI assistant for your whole homelab. Multi-agent by design: each agent you configure handles one job, such as the house, music, weather or your documents, using the services you already host.

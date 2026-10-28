@@ -10,7 +10,10 @@ Ambrogio è descritto da un solo modello Reqvire distribuito sui repository del 
 ├── ambrogio-cli/        client terminale
 ├── ambrogio-web/        chat web facoltativa
 ├── ambrogio-docs/       documentazione utente (sito Astro Starlight, in inglese, senza modello)
-└── ambrogio-homelab-example/  esempio completo d'installazione domestica con Compose e agenti (in inglese, senza modello)
+├── ambrogio-homelab-example/  esempio completo d'installazione domestica con Compose e agenti (in inglese, senza modello)
+├── ambrogio-app.github.io/    sito del progetto, una pagina Astro alla radice di ambrogio-app.github.io (in inglese, senza modello)
+├── ambrogio-brand/            logo, palette, font e forme del marchio, repository privato (in inglese, senza modello)
+└── ambrogio-video/            video dimostrativo del prodotto, repository privato (in inglese, senza modello)
 ```
 
 Le istruzioni di ciascun repository restano autorevoli per il lavoro al suo interno:
@@ -32,6 +35,9 @@ Le istruzioni di ciascun repository restano autorevoli per il lavoro al suo inte
 - Un cambiamento che tocca più repository usa lo stesso nome di branch in ciascuno; le pull request si integrano in ordine di dipendenza, a partire da `ambrogio-model`.
 - `ambrogio-docs` non ha un modello: descrive installazione, configurazione, architettura e funzionamento per chi installa Ambrogio in casa, e ogni fatto documentato deriva dal modello e dal codice. Quando cambia un comportamento pubblico, una configurazione, un limite, un messaggio o una versione compatibile, si aggiornano nello stesso lavoro le pagine interessate di `ambrogio-docs` (in particolare `reference/` e `reference/versions.md`) e si esegue `npm run build`.
 - `ambrogio-homelab-example` non ha un modello: è un esempio d'installazione completa, con un Compose per servizio e i file degli agenti, derivato dall'installazione di riferimento senza i suoi dati. Non segue ogni release, come dice il suo README; quando lo si aggiorna, `scripts/check` ne valida i Compose e carica gli agenti con la release del backend indicata in `.env.example`.
+- `ambrogio-app.github.io` non ha un modello: è il sito del progetto, pubblicato su <https://ambrogio-app.github.io/>, con ciò che Ambrogio fa e i collegamenti alla documentazione e ai repository. Ogni affermazione sul prodotto concorda con `ambrogio-docs`; quando cambia una funzionalità descritta nel sito, lo stesso lavoro aggiorna la pagina ed esegue `npm run build`.
+- `ambrogio-brand` non ha un modello ed è privato: contiene logo, palette, font (Nunito) e forme del marchio, unica fonte del brand. Gli altri repository ne tengono una copia fatta con `ambrogio-brand/scripts/sync`, che non si modifica sul posto; `scripts/sync --check` controlla che le copie coincidano. Un cambio del brand si fa prima in `ambrogio-brand` e poi, con lo stesso branch, nei repository che ricevono la copia.
+- `ambrogio-video` non ha un modello ed è privato: produce il video dimostrativo di Ambrogio, con schermate simulate di chat web, Home Assistant e Music Assistant generate fotogramma per fotogramma, il satellite e l'audio presi da registrazioni reali. Ciò che il video mostra concorda con `ambrogio-docs`; legge il brand direttamente da `ambrogio-brand` affiancato, senza tenerne una copia. Le registrazioni restano fuori dal repository, e dal video si tagliano le parti con dati dell'installazione.
 - La visibilità dei repository su GitHub è una decisione della persona: non renderli pubblici né cambiarne la visibilità.
 
 ## Reqvire: solo CLI
