@@ -64,6 +64,10 @@ rv() { npm_config_loglevel=error npx -y "@reqvire-org/reqvire@$(cat ambrogio-mod
 - `ambrogio-model` registra la baseline come elemento `source` con indirizzo, commit adottato e decisioni esaminate e non adottate con il motivo. Ogni requisito che registra una decisione tratta dalla baseline ne indica l'origine nei `Details`: il nome della decisione come nel catalogo, tra « e », e se è adottata o adattata, con cosa cambia. Nessun collegamento Reqvire punta alla baseline.
 - Il passaggio a un commit più recente della baseline è una modifica esplicita, fatta dopo aver rivisto le differenze fra i due commit.
 
+## Stile dei testi
+
+- La prosa del sito, della documentazione e dei README di tutti i repository si rivede con la skill `stop-slop` e non usa lineette lunghe. La skill non si applica mai al modello Reqvire: le cartelle `system-model/` e gli elementi del modello seguono la formulazione normativa del modello.
+
 ## Dati di installazione
 
 - Il modello registra obblighi e decisioni del prodotto, non dati di una specifica installazione. Non riportare in modelli, codice, test, commit o documentazione indirizzi IP, nomi host, domini, percorsi personali, credenziali, identificativi di dispositivi o entità, nomi di stanze, né la configurazione effettiva di chi usa il prodotto. Le evidenze di prove su installazioni reali descrivono l'ambiente in termini generici: per esempio «l'installazione di riferimento», l'architettura, l'hardware o la versione usata. Gli esempi usano valori segnaposto o indirizzi di esempio.
