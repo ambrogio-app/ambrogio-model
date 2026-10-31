@@ -27,6 +27,21 @@ L'ispezione passa se i workflow dichiarano trigger, permessi, action fissate, ru
   * verify: [Workflow GitHub Actions con privilegi e durata limitati](../Requirements/ModelDrivenDevelopment.md#workflow-github-actions-con-privilegi-e-durata-limitati)
 ---
 
+### Ispezione del server PostgreSQL di prova locale
+
+Durante la revisione di ogni modifica di `scripts/test-postgres`, eseguire `scripts/test-postgres start` su una macchina con Docker, esportare la riga stampata, eseguire `pnpm verify` nel backend e in un client, poi `scripts/test-postgres stop`.
+
+#### Details
+L'ispezione passa se `start` avvia il container o riusa quello in esecuzione e stampa `AMBROGIO_TEST_DATABASE_URL`, se le prove PostgreSQL del backend e quelle d'integrazione del client passano con quel valore e se `stop` rimuove il container. Fallisce se una di queste condizioni non vale. Non automatizzabile: la CI fornisce PostgreSQL come container di servizio e non esegue lo script, che serve soltanto a chi sviluppa in locale e richiede Docker sulla sua macchina.
+
+#### Metadata
+  * type: inspection-verification
+
+#### Relations
+  * derivedFrom: [Verifica degli strumenti e dei workflow di ambrogio-model](#verifica-degli-strumenti-e-dei-workflow-di-ambrogio-model)
+  * verify: [Comando di verifica completo](../Requirements/ModelDrivenDevelopment.md#comando-di-verifica-completo)
+---
+
 ### Ispezione della protezione del merge di ambrogio-model
 
 Leggere con `gh api repos/ambrogio-app/ambrogio-model/rulesets` e con il dettaglio del ruleset `main` le regole attive sul branch principale di `ambrogio-model`.
@@ -64,6 +79,7 @@ La prova passa se la validazione riesce, il lint non riporta elementi `auto_fixa
   * verify: [Formulazione normativa degli obblighi](../Requirements/ModelDrivenDevelopment.md#formulazione-normativa-degli-obblighi)
   * verify: [Motivazioni nei dettagli del requisito](../Requirements/ModelDrivenDevelopment.md#motivazioni-nei-dettagli-del-requisito)
   * verify: [Un solo modello attraverso i repository](../Requirements/ModelDrivenDevelopment.md#un-solo-modello-attraverso-i-repository)
+  * verify: [Verifica automatica per default](../Requirements/ModelDrivenDevelopment.md#verifica-automatica-per-default)
   * verify: [Verifiche manuali giustificate](../Requirements/ModelDrivenDevelopment.md#verifiche-manuali-giustificate)
   * verify: [Versione fissata di Reqvire](../Requirements/ModelDrivenDevelopment.md#versione-fissata-di-reqvire)
 ---
@@ -230,3 +246,4 @@ L'ispezione passa se il repository ha il testo della licenza MIT in `LICENSE`, s
   * verify: [Marchio da un'unica fonte](../Requirements/ModelDrivenDevelopment.md#marchio-da-ununica-fonte)
   * verify: [Sito del progetto coerente con documentazione e modello](../Requirements/ModelDrivenDevelopment.md#sito-del-progetto-coerente-con-documentazione-e-modello)
 ---
+

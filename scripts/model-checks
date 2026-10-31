@@ -4,7 +4,11 @@
 # Used by the pre-commit hooks and by CI of every repository of the model. Reqvire reads a temporary
 # mirror of the files Git sees, so that installed dependencies do not slow it down.
 #
-# Usage: model-checks [--workspace DIR]   (default: the folder that contains ambrogio-model)
+# Usage: model-checks [--workspace DIR] [--staged REPO INDEX]
+#   (default workspace: the folder that contains ambrogio-model)
+#   --staged REPO INDEX (given by the pre-commit hooks): Reqvire reads the repository REPO from its index
+#   file INDEX, the content about to be committed, and the integrity script lists its governed files from
+#   that index; the other repositories are read from the working tree.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=reqvire-workspace.sh
@@ -13,15 +17,24 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # Inside a Git hook, Git exports the repository of the commit; the checks read every repository.
 unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_COMMON_DIR
 ROOT="$(workspace_root)"
+STAGED=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --workspace) ROOT="$(workspace_root "$2")"; shift 2 ;;
+    --staged) STAGED=("$(cd "$2" && pwd -P)" "$(cd "$(dirname "$3")" && pwd -P)/$(basename "$3")"); shift 3 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
 reqvire_cmd
 MIRROR="$(workspace_mirror "$ROOT")"
 report="$(mktemp)"; trap 'rm -rf "$MIRROR" "$report"' EXIT
+if [ ${#STAGED[@]} -gt 0 ]; then
+  # The repository being committed is read from its index instead of its working tree.
+  name="$(basename "${STAGED[0]}")"
+  rm -rf "${MIRROR:?}/$name"; mkdir -p "$MIRROR/$name"
+  GIT_INDEX_FILE="${STAGED[1]}" git -C "${STAGED[0]}" checkout-index -a --prefix="$MIRROR/$name/"
+  git -C "$MIRROR/$name" init -q
+fi
 
 "${REQVIRE_CMD[@]}" --workspace "$MIRROR" validate >&2
 "${REQVIRE_CMD[@]}" --workspace "$MIRROR" lint --json > "$report"
@@ -32,5 +45,5 @@ if (report.auto_fixable.length || report.needs_manual_review.length) {
   console.error("model-checks: Reqvire lint has findings");
   process.exit(1);
 }' "$report"
-node "$HERE/check-model.mjs" "$ROOT" "$MIRROR"
+node "$HERE/check-model.mjs" "$ROOT" "$MIRROR" ${STAGED[@]+--staged "${STAGED[@]}"}
 python3 "$HERE/repo-deps" --workspace "$ROOT" --check-acyclic >/dev/null

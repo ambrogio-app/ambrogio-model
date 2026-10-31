@@ -12,7 +12,8 @@
 #                                walks the installed dependencies. The caller removes the folder.
 #   reqvire_cmd               -> sets REQVIRE_CMD (array) to run Reqvire at the exact pinned version:
 #                                $REQVIRE (local binary), else npx with $REQVIRE_NPX_PACKAGE, else the
-#                                version in ambrogio-model/.reqvire-version; never a floating version
+#                                version in ambrogio-model/.reqvire-version; only an exact version
+#                                MAJOR.MINOR.PATCH[-pre-release], never a tag, range or partial version
 set -euo pipefail
 
 MODEL_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -53,9 +54,11 @@ reqvire_cmd() {
     package="$(tr -d '[:space:]' < "$MODEL_REPO/.reqvire-version")"
     case "$package" in *@*) ;; *) package="@reqvire-org/reqvire@$package" ;; esac
   fi
-  case "$package" in
-    ""|*@latest|*@next) echo "reqvire version not pinned: write the exact version in $MODEL_REPO/.reqvire-version" >&2; return 1 ;;
-  esac
+  # An exact version after the package name: MAJOR.MINOR.PATCH with an optional pre-release suffix;
+  # dist-tags, ranges, partial versions and a package without a version are refused.
+  if ! [[ "$package" =~ ^@?[^@[:space:]]+@[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+    echo "reqvire version not pinned: write the exact version in $MODEL_REPO/.reqvire-version" >&2; return 1
+  fi
   export npm_config_loglevel=error
   REQVIRE_CMD=(npx -y "$package")
 }

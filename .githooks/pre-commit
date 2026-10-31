@@ -2,9 +2,16 @@
 # Block commits that add secrets or leave the model of the workspace invalid.
 # Enable once per clone: git config core.hooksPath .githooks
 set -euo pipefail
-if ! command -v gitleaks >/dev/null 2>&1; then
-  echo "pre-commit: gitleaks is not on PATH; install gitleaks 8.30.1 (https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1) and retry." >&2
+required=8.30.1
+if ! command -v gitleaks >/dev/null 2>&1 || [ "$(gitleaks version 2>/dev/null)" != "$required" ]; then
+  echo "pre-commit: gitleaks $required is not on PATH; install gitleaks $required (https://github.com/gitleaks/gitleaks/releases/tag/v$required) and retry." >&2
   exit 1
 fi
-gitleaks git --pre-commit --staged --redact --no-banner .
-"$(git rev-parse --show-toplevel)/scripts/model-checks"
+# --ignore-gitleaks-allow: an inline gitleaks:allow comment never hides a finding; exceptions live only in
+# .gitleaksignore, a governed file referenced by the model.
+gitleaks git --pre-commit --staged --redact --no-banner --ignore-gitleaks-allow .
+# The model checks read the staged content of this repository, the content about to be committed.
+top="$(git rev-parse --show-toplevel)"
+index="${GIT_INDEX_FILE:-$(git rev-parse --git-path index)}"
+case "$index" in /*) ;; *) index="$(pwd)/$index" ;; esac
+"$top/scripts/model-checks" --staged "$top" "$index"
