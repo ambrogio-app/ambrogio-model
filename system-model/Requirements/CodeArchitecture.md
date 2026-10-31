@@ -212,7 +212,7 @@ Origine: baseline Reqvire «Technical independence of Domain and Application», 
 I componenti tecnici di Ambrogio che registrano eventi diagnostici devono ricevere un'interfaccia strutturale minima del logger con `debug`, `info`, `warn`, `error` e la creazione di un logger derivato con campi fissi, senza dipendere dall'API della libreria di logging; la composition root di ogni processo deve creare e condividere un solo logger di base per l'intero grafo del processo, un logger derivato deve aggiungere contesto senza modificare il logger di base né un altro logger derivato, e la configurazione del logger di base deve oscurare i valori dei campi dal nome sensibile.
 
 #### Details
-Il backend e il satellite raffinano questo requisito con il proprio logger di base. Domain e casi d'uso restano senza logger secondo «Domain e casi d'uso senza logger».
+Il backend e il satellite raffinano questo requisito con il proprio logger di base. Domain e casi d'uso restano senza logger secondo «Domain e casi d'uso senza logger». Le variabili delle credenziali hanno nomi scelti da chi installa, per esempio con `apiKeyEnv` negli agenti del backend, e un elenco di percorsi fissi non le copre; un valore sensibile dentro un array, in un oggetto referenziato più volte o in un'istanza di classe resterebbe altrimenti in chiaro.
 
 Origine: baseline Reqvire «Minimal logger interface with one base logger», adattata: l'oscuramento riconosce i campi sensibili dallo schema del nome a ogni profondità invece che da un elenco di percorsi, per coprire i nomi delle variabili delle credenziali scelti da chi installa.
 
@@ -255,9 +255,13 @@ Origine: baseline Reqvire «Pino as technical logger», adottata; «Single-line 
 
 ### Nomi dei file secondo il ruolo architetturale
 
-I file del codice di produzione devono seguire una convenzione esplicita e uniforme che renda riconoscibili i casi d'uso, le porte e gli adapter secondo la responsabilità effettivamente realizzata.
+I file del codice di produzione devono seguire una convenzione esplicita e uniforme che renda riconoscibili i casi d'uso, le porte e gli adapter secondo la responsabilità effettivamente realizzata; ogni adapter deve realizzare una porta o invocare un caso d'uso, e la realizzazione di una porta non deve essere scritta nella composition root.
 
 #### Details
+Si applica al backend e al satellite, che raffinano questo requisito con l'ispezione dei propri file.
+
+Martin Fowler sostiene una politica coerente dei nomi dei ruoli e l'uso dei nomi dei pattern quando chiariscono la responsabilità, senza proporre una convenzione universale: https://martinfowler.com/articles/refactoring-external-service.html . Robert C. Martin evidenzia la riconoscibilità dei casi d'uso nella struttura: https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html . Gli esempi di Alistair Cockburn non impongono il termine Adapter nei nomi: https://alistair.cockburn.us/hexagonal-architecture . I suffissi obbligatori sono una scelta di Ambrogio, non una prescrizione attribuita a questi autori. Un adapter senza porta nasconde una dipendenza che Application non dichiara, e una porta realizzata nella composition root sfugge alle regole e ai test degli adapter.
+
 Origine: baseline Reqvire «Production file names by architectural role», adottata.
 
 #### Metadata
@@ -315,14 +319,31 @@ Origine: baseline Reqvire «Central blocking architecture rules», adattata: le 
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
 
-### Serializzazione controllata di err
+### Nessun ciclo di import
 
-Quando il logger di un componente di Ambrogio emette la riga JSON di un log diagnostico definitivo, la riga deve contenere una rappresentazione del campo `err` conforme al profilo controllato di serializzazione, che mostra tipo, messaggio e stack soltanto per gli errori costruiti dal progetto e una descrizione costante per ogni altro valore.
+Il grafo degli import dei sorgenti e dei test di ogni repository di prodotto con regole di architettura sugli import, compresi gli import di soli tipi, non deve contenere cicli fra moduli, nemmeno all'interno di uno stesso package, layer o cartella.
 
 #### Details
-Il backend e il satellite raffinano questo requisito con la propria classe di errore del progetto e la propria descrizione costante.
+Si applica al backend, al satellite e alla chat web, che controllano gli import con regole di architettura nella propria suite di test; ciascuno raffina questo requisito con una regola dal nome stabile e la sua fixture negativa, secondo «Regole di architettura centrali e bloccanti» nel backend e nel satellite. Un ciclo lega moduli che non si possono più capire, provare o spostare separatamente, e le regole sui layer e sui package non escludono i cicli all'interno di uno stesso layer o package.
 
-Origine: baseline Reqvire «Controlled serialization of err», adattata: l'errore del progetto che raccoglie i guasti indipendenti del ciclo di vita mostra anche le viste dei guasti raccolti.
+Origine: baseline Reqvire «No import cycles», adattata: la regola è un controllo della suite Vitest sul grafo degli import ricavato dal testo dei sorgenti, con la propria fixture negativa, invece della regola `no-circular` di dependency-cruiser.
+
+#### Metadata
+  * type: requirement
+
+#### Relations
+  * derivedFrom: [Regole di architettura centrali e bloccanti](#regole-di-architettura-centrali-e-bloccanti)
+  * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
+---
+
+### Serializzazione controllata di err
+
+Quando il logger di un componente di Ambrogio emette la riga JSON di un evento diagnostico, la riga deve rappresentare il campo `err` e ogni altro `Error` presente nei campi dell'evento, a qualunque profondità e sotto qualunque chiave, secondo il profilo controllato di serializzazione, che mostra tipo, messaggio e stack soltanto per gli errori costruiti dal progetto, la vista di ciascuno degli errori raccolti da un `AggregateError` e una descrizione costante per ogni altro valore.
+
+#### Details
+Il backend e il satellite raffinano questo requisito con la propria classe di errore del progetto e la propria descrizione costante. Un `Error` serializzato fuori dal campo `err` senza la vista controllata copierebbe nella riga le proprietà enumerabili di un errore esterno, come i dettagli di un driver.
+
+Origine: baseline Reqvire «Controlled serialization of err», adattata: l'errore del progetto che raccoglie i guasti indipendenti del ciclo di vita mostra anche le viste dei guasti raccolti; gli errori del progetto sono riconosciuti dalla classe `ProjectError` del componente invece che da un marcatore `Symbol.for` condiviso fra moduli, perché ogni repository ha un solo package business e una sola classe di errore del progetto.
 
 #### Metadata
   * type: requirement
@@ -370,7 +391,7 @@ Ogni repository di prodotto con componenti in layer deve eseguire la propria sui
 #### Details
 Si applica al backend e al satellite, ciascuno dei quali raffina questo requisito con le proprie selezioni e i propri script. Il client terminale e la chat web mantengono la disposizione dei test registrata nei rispettivi contratti.
 
-Origine: baseline Reqvire «Vitest as test runner», adattata: i test che non verificano un solo file sorgente, i moduli di supporto condivisi e le prove dell'intero repository hanno cartelle `test/` dedicate.
+Origine: baseline Reqvire «Vitest as test runner», adattata: i test che non verificano un solo file sorgente, i moduli di supporto condivisi e le prove dell'intero repository hanno cartelle `test/` dedicate; la configurazione è un solo `vitest.config.ts` nella radice del repository, che dichiara le selezioni, senza un package di strumenti `vitest-config` né una configurazione per applicazione o package, perché ogni repository ha una sola applicazione da configurare.
 
 #### Metadata
   * type: requirement
@@ -398,3 +419,4 @@ Origine: baseline Reqvire «Client integration through the public server interfa
 #### Relations
   * specify: [Architettura del codice](../Capabilities/Engineering.md#architettura-del-codice)
 ---
+

@@ -94,7 +94,7 @@ Insieme dei membri che usano una stessa installazione domestica di Ambrogio. Nel
 
 ### Indicazione di replica attesa
 
-Segnale booleano fornito dal backend con l'esito di un turno vocale che stabilisce se, dopo la risposta, la famiglia formula un altro turno nella stessa interazione vocale senza wake word.
+Segnale booleano fornito dal backend con l'esito di ogni turno completato che stabilisce se la risposta attende una replica della famiglia; un satellite vocale lo usa per ammettere un altro turno nella stessa interazione vocale senza wake word.
 
 #### Metadata
   * type: concept
@@ -102,6 +102,7 @@ Segnale booleano fornito dal backend con l'esito di un turno vocale che stabilis
 #### Relations
   * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
   * related: [Risposta parlata](#risposta-parlata)
+  * related: [Esito del turno](#esito-del-turno)
 ---
 
 ### Installazione
@@ -117,7 +118,7 @@ Installazione domestica di Ambrogio nell'homelab di una famiglia, con la configu
 
 ### Interazione vocale
 
-Sessione temporanea tra un satellite vocale e il backend che comprende più turni vocali consecutivi della famiglia senza ripetere la wake word.
+Sequenza di turni vocali consecutivi su un satellite vocale, dall'attivazione con la wake word al ritorno in attesa della wake word, nella quale la famiglia replica senza ripetere la wake word. È uno stato del satellite e non coincide con la sessione conversazionale, che resta aperta fra un'interazione e l'altra.
 
 #### Metadata
   * type: concept
@@ -125,6 +126,7 @@ Sessione temporanea tra un satellite vocale e il backend che comprende più turn
 #### Relations
   * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
   * related: [Satellite vocale](#satellite-vocale)
+  * related: [Sessione conversazionale](#sessione-conversazionale)
 ---
 
 ### Risposta parlata
@@ -199,4 +201,55 @@ Turno pronunciato dalla famiglia e inviato al backend come audio, che il backend
   * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
   * broader: [Turno](#turno)
   * related: [Interazione vocale](#interazione-vocale)
+---
+
+### Ammissione del turno
+
+Accettazione da parte del backend della richiesta di un turno, dopo la sua chiusura, con cui il turno entra in una conversazione e riceve la propria identità. Un turno ammesso arriva sempre a un esito conservato nella conversazione.
+
+#### Metadata
+  * type: concept
+
+#### Relations
+  * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
+  * related: [Turno](#turno)
+---
+
+### Esito del turno
+
+Conclusione di un turno comunicata dal backend al client conversazionale: completato con una risposta, fallito con un messaggio pubblico di errore, interrotto dall'arresto del backend oppure rifiutato prima dell'ammissione. L'esito di un turno ammesso è conservato nella conversazione.
+
+#### Metadata
+  * type: concept
+
+#### Relations
+  * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
+  * related: [Turno](#turno)
+  * related: [Scambio](#scambio)
+---
+
+### Rifiuto del turno
+
+Esito di una richiesta che il backend non ammette come turno, comunicato al client conversazionale con un motivo e un messaggio pubblico. Il turno rifiutato non è conservato e non crea una conversazione.
+
+#### Metadata
+  * type: concept
+
+#### Relations
+  * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
+  * broader: [Esito del turno](#esito-del-turno)
+  * related: [Ammissione del turno](#ammissione-del-turno)
+  * related: [Messaggio pubblico](#messaggio-pubblico)
+---
+
+### Messaggio pubblico
+
+Testo destinato alla famiglia che comunica il rifiuto di un turno o l'errore di un turno ammesso, nella lingua configurata e senza dettagli tecnici. Il client conversazionale lo presenta alla famiglia; per un turno ammesso è conservato come esito di errore.
+
+#### Metadata
+  * type: concept
+
+#### Relations
+  * derivedFrom: [Lessico Ambrogio](#lessico-ambrogio)
+  * related: [Esito del turno](#esito-del-turno)
 ---

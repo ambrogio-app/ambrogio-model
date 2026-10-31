@@ -102,10 +102,12 @@ Origine: baseline Reqvire «Side-by-side workspace checkout in CI», adattata: l
 
 ### Controlli del modello prima del commit
 
-Quando si crea un commit in un clone di un repository del modello con gli hook versionati attivi, l'hook pre-commit deve eseguire, dopo la scansione dei segreti, i controlli dell'intero modello della cartella di lavoro con `scripts/model-checks` di `ambrogio-model`, e deve impedire il commit se uno di questi controlli fallisce oppure se, in un repository di prodotto, `ambrogio-model` non è affiancato al repository.
+Quando si crea un commit in un clone di un repository del modello con gli hook versionati attivi, l'hook pre-commit deve eseguire, dopo la scansione dei segreti, i controlli dell'intero modello della cartella di lavoro con `scripts/model-checks` di `ambrogio-model` sul contenuto in staging del repository del commit, e deve impedire il commit se uno di questi controlli fallisce oppure se, in un repository di prodotto, `ambrogio-model` non è affiancato al repository.
 
 #### Details
 I controlli comprendono la validazione e il lint di Reqvire, lo script di integrità del modello e il controllo del grafo fra repository: le regole di integrità si riapplicano a ogni commit, e la CI ripete gli stessi controlli. Ogni repository di prodotto raffina questo requisito con il proprio hook e la relativa prova.
+
+Leggere il contenuto in staging impedisce che un commit parziale porti nella storia una violazione che la cartella di lavoro non mostra più.
 
 Origine: baseline Reqvire «Model checks before commit», adattata: l'hook di un repository di prodotto controlla l'intero modello dal checkout affiancato di `ambrogio-model` e impedisce il commit quando `ambrogio-model` non è affiancato.
 
@@ -144,7 +146,7 @@ Prima di proporre una modifica per l'integrazione, chi la propone deve eseguire 
 #### Details
 Nei repository di prodotto i controlli della CI si eseguono con `pnpm verify`. Il modello si valida anche durante la costruzione, dopo modifiche significative. Il rapporto di copertura non certifica che i test siano passati e le verifiche segnalate dall'analisi d'impatto richiedono revisione, non sono automaticamente fallite. Al termine si riportano le modifiche, i controlli eseguiti e le lacune o attività esterne ancora aperte.
 
-Origine: baseline Reqvire «Local checks before push», adottata; «Model validation and review before completion», adattata: l'analisi d'impatto copre tutti i repository con `scripts/change-impact-composite`.
+Origine: baseline Reqvire «Local checks before push», adattata: senza l'hook `pre-push` della baseline, per decisione della persona, il comando di verifica si esegue a mano prima del push; «Model validation and review before completion», adattata: l'analisi d'impatto copre tutti i repository con `scripts/change-impact-composite`.
 
 #### Metadata
   * type: requirement
@@ -184,7 +186,7 @@ Origine: baseline Reqvire «Blocking engineering model checks in CI», adattata:
 
 ### Controllo dei segreti prima del commit
 
-Quando si crea un commit in un clone di un repository di Ambrogio con gli hook versionati attivi, il controllo pre-commit deve scansionare con gitleaks le modifiche in staging e deve impedire il commit se rileva un segreto oppure se gitleaks non è disponibile.
+Quando si crea un commit in un clone di un repository di Ambrogio con gli hook versionati attivi, il controllo pre-commit deve scansionare con gitleaks le modifiche in staging, senza che un commento nel codice nasconda un rilevamento, e deve impedire il commit se rileva un segreto oppure se gitleaks non è disponibile alla versione richiesta.
 
 #### Details
 Ogni repository di prodotto raffina questo requisito con il proprio hook e la relativa prova.
@@ -265,6 +267,9 @@ Origine: baseline Reqvire «Contract dependencies declared as references», adot
 #### Metadata
   * type: requirement
 
+#### Contract References
+  * [Script di integrità del modello](../Contracts/ModelDrivenDevelopment.md#script-di-integrità-del-modello)
+
 #### Relations
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
@@ -305,7 +310,7 @@ Origine: baseline Reqvire «Examples in English», adottata.
 
 ### File di governo collegati al modello
 
-Ogni file di configurazione di GitHub, compresi i workflow di CI, ogni hook Git, file di build del container, esempio Compose, file di esclusione, configurazione del gestore di pacchetti, del compilatore o del runner di test, script e file di istruzioni per gli agenti `AGENTS.md` di ciascun repository del modello deve essere riferito da almeno un requisito o una verifica del modello.
+Ogni file di configurazione di GitHub, compresi i workflow di CI, ogni hook Git, file di build del container, esempio Compose, file di esclusione, configurazione del gestore di pacchetti, del compilatore o del runner di test, script, file di eccezioni della scansione dei segreti `.gitleaksignore` e file di istruzioni per gli agenti `AGENTS.md` di ciascun repository del modello deve essere riferito da almeno un requisito o una verifica del modello.
 
 #### Details
 Un file che codifica decisioni ingegneristiche senza un collegamento al modello cambia senza che alcun obbligo lo segnali, e le decisioni presenti solo nei file divergono fra file simili, per esempio fra i workflow di controllo e quello di pubblicazione. Lo script di integrità controlla i file per percorso; gli `AGENTS.md` sono controllati nella revisione.
@@ -326,10 +331,10 @@ Origine: baseline Reqvire «Governed files linked to the model», adattata: l'in
 
 ### Formulazione normativa degli obblighi
 
-Gli enunciati dei requisiti e i testi dei contratti devono esprimere gli obblighi con «deve» o «devono» e non devono usare `può`, `possono`, `potrebbe`, `potrebbero`, `dovrebbe`, `dovrebbero` o `eventualmente`; un'opzione lasciata a una parte deve essere espressa nominando la parte che sceglie.
+Gli enunciati dei requisiti devono esprimere gli obblighi con «deve» o «devono», i testi dei contratti devono esprimere ciò che fissano all'indicativo presente, e né gli uni né gli altri devono usare `può`, `possono`, `potrebbe`, `potrebbero`, `dovrebbe`, `dovrebbero` o `eventualmente`; un'opzione lasciata a una parte deve essere espressa nominando la parte che sceglie.
 
 #### Details
-Il testo in code span, i messaggi citati e i nomi di elementi tra «» non sono formulazione dell'obbligo. Le sezioni Details dei requisiti sono indicazioni e non vengono controllate. Una formula permissiva rende ambiguo se il comportamento è obbligatorio, facoltativo o scelto da qualcuno, e il codice e il modello finiscono per darne letture diverse.
+Il testo in code span, i messaggi citati e i nomi di elementi tra «» non sono formulazione dell'obbligo. Le sezioni Details dei requisiti sono indicazioni e non vengono controllate. Una formula permissiva rende ambiguo se il comportamento è obbligatorio, facoltativo o scelto da qualcuno, e il codice e il modello finiscono per darne letture diverse. Un contratto obbliga attraverso il requisito che lo possiede, quindi il suo indicativo presente esprime già un obbligo.
 
 Origine: baseline Reqvire «Normative wording of obligations», adattata: le formule vietate sono quelle italiane e inglesi elencate dallo script di integrità.
 
@@ -450,7 +455,7 @@ Origine: baseline Reqvire «Eight-step engineering work order», adottata; «Mod
 Quando la scansione dei segreti segnala un segreto, il ritrovamento deve essere risolto rimuovendo il segreto, e ruotandolo se è già stato committato, senza aggirare l'hook con `--no-verify` né disattivarlo; un falso positivo deve essere risolto soltanto con un'eccezione concordata con la persona e registrata nel modello.
 
 #### Details
-Fino a un'eccezione registrata, lo scanner usa le proprie regole predefinite senza eccezioni.
+Fino a un'eccezione registrata, lo scanner usa le proprie regole predefinite senza eccezioni. Un'eccezione vive soltanto nel file `.gitleaksignore` del repository, riferito dal modello: un commento `gitleaks:allow` nel codice non vale come eccezione, perché la scansione lo ignora.
 
 Origine: baseline Reqvire «Secret findings resolved by removal», adottata; «Recorded exceptions for scanner false positives», adottata.
 
@@ -468,6 +473,8 @@ Quando viene eseguito un push su qualunque branch o viene proposta una pull requ
 
 #### Details
 Ogni repository di prodotto raffina questo requisito con il proprio workflow e il nome del proprio job; un repository che pubblica immagini richiede la scansione prima della pubblicazione.
+
+Alternative considerate: l'azione `gitleaks/gitleaks-action`, che richiede una chiave di licenza per le organizzazioni e aggiunge una dipendenza da un'azione di terzi; la sola scansione in CI, che lascia entrare il segreto nella storia locale; il solo hook locale, che dipende dalla configurazione di ogni clone e non protegge integrazione e pubblicazione. Motivo: il binario fissato e verificato con l'impronta non dipende da licenze né da azioni di terzi, e hook locale e scansione in CI insieme bloccano il segreto prima del commit e prima di integrazione e pubblicazione.
 
 Origine: baseline Reqvire «Full-history secret scan in CI», adottata; «gitleaks as secret scanner», adottata; «Checksum-verified scanner in CI», adottata; «Redacted secret findings», adottata.
 
@@ -533,6 +540,25 @@ Origine: baseline Reqvire «Product-wide model repository at the base of the gra
   * satisfiedBy: [repo-deps](../../scripts/repo-deps)
   * satisfiedBy: [reqvire-workspace.sh](../../scripts/reqvire-workspace.sh)
   * satisfiedBy: [rv](../../scripts/rv)
+  * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
+---
+
+### Verifica automatica per default
+
+Ogni requisito collegato con `satisfiedBy` alla propria realizzazione deve essere verificato da almeno una verifica, e ogni verifica di test di un tale requisito deve essere collegata con `satisfiedBy` al test o al controllo che la esegue; un requisito la cui verifica non è automatizzabile deve essere verificato da una verifica di ispezione, analisi o dimostrazione.
+
+#### Details
+Una verifica di test senza `satisfiedBy` descrive una prova che nessuno esegue, e Reqvire la conta comunque come verifica. Lo script di integrità del modello segnala ogni requisito realizzato senza verifica e ogni sua verifica di test senza `satisfiedBy`, e il controllo è bloccante.
+
+Origine: baseline Reqvire «Automated verification by default», adattata: il controllo è bloccante senza modalità solo-report, perché le lacune del modello sono state chiuse nella stessa modifica che lo introduce.
+
+#### Metadata
+  * type: requirement
+
+#### Contract References
+  * [Script di integrità del modello](../Contracts/ModelDrivenDevelopment.md#script-di-integrità-del-modello)
+
+#### Relations
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
 
@@ -606,3 +632,4 @@ Origine: baseline Reqvire «Least-privilege workflow token», adottata; «Workfl
   * satisfiedBy: [secret-scan.yml](../../.github/workflows/secret-scan.yml)
   * specify: [Sviluppo governato dal modello](../Capabilities/Engineering.md#sviluppo-governato-dal-modello)
 ---
+

@@ -3,11 +3,14 @@
 // - enunciati dei requisiti e testi dei contratti senza formule non normative;
 // - contratti senza alternative né motivazioni, che stanno nei Details del requisito proprietario;
 // - ogni verifica di ispezione, analisi o dimostrazione indica «Non automatizzabile:»;
+// - ogni contratto citato tra «» da un contratto di un altro requisito è nelle Contract References del proprietario;
+// - ogni requisito implementato ha una verifica e ogni sua verifica di test ha satisfiedBy;
 // - ogni file di governo tracciato da Git in ciascun repository del modello è riferito dal modello.
 // Il modello è unico e comprende ogni repository dello spazio di lavoro che contiene system-model/.
-// Uso: node scripts/check-model.mjs [workspace] [specchio], con workspace predefinito la cartella che
+// Uso: node scripts/check-model.mjs [workspace] [specchio] [--staged repository indice], con workspace predefinito la cartella che
 // contiene ambrogio-model; Reqvire legge lo specchio dei file visibili a Git preparato da
-// scripts/model-checks, se indicato, altrimenti la cartella di lavoro. Reqvire gira alla versione di ambrogio-model/.reqvire-version. Esce con stato 1 se
+// scripts/model-checks, se indicato, altrimenti la cartella di lavoro. Con --staged i file di governo del
+// repository del commit sono quelli del file indice indicato, cioè il contenuto che sta per essere committato. Reqvire gira alla versione di ambrogio-model/.reqvire-version. Esce con stato 1 se
 // trova violazioni.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
@@ -17,9 +20,12 @@ import { fileURLToPath } from 'node:url';
 const modelRepo = fileURLToPath(new URL('..', import.meta.url));
 const workspace = resolve(process.argv[2] ?? join(modelRepo, '..'));
 const reqvireWorkspace = resolve(process.argv[3] ?? workspace);
+const stagedAt = process.argv.indexOf('--staged');
+const staged = stagedAt > 0 ? { repository: realpathSync(process.argv[stagedAt + 1]), index: resolve(process.argv[stagedAt + 2]) } : undefined;
 const pinned = readFileSync(join(modelRepo, '.reqvire-version'), 'utf8').trim();
 const reqvirePackage = pinned.includes('@') ? pinned : `@reqvire-org/reqvire@${pinned}`;
-if (!pinned || /@(latest|next)$/.test(reqvirePackage)) {
+// Una versione esatta dopo il nome del pacchetto: MAJOR.MINOR.PATCH con un eventuale suffisso di pre-release.
+if (!/^@?[^@\s]+@\d+\.\d+\.\d+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/u.test(reqvirePackage)) {
   console.error(`versione di Reqvire non fissata in ${join(modelRepo, '.reqvire-version')}`);
   process.exit(1);
 }
@@ -47,6 +53,7 @@ const governed = [
   /(^|\/)compose[^/]*\.ya?ml$/,
   /(^|\/)\.dockerignore$/,
   /(^|\/)\.gitignore$/,
+  /(^|\/)\.gitleaksignore$/,
   /(^|\/)\.npmrc$/,
   /(^|\/)package\.json$/,
   /^pnpm-workspace\.yaml$/,
@@ -88,9 +95,49 @@ for (const element of verifications.filter(element => manualTypes.includes(eleme
   }
 }
 
+const targets = (element, type) => element.relations
+  .filter(relation => relation.relation_type === type)
+  .map(relation => relation.target.target);
+const byIdentifier = new Map(allElements.map(element => [element.identifier, element]));
+const contractsByName = Map.groupBy(contracts, element => element.name);
+for (const contract of contracts) {
+  const owners = targets(contract, 'define');
+  const cited = new Set([...contract.content.replace(/`[^`]*`/gu, '').matchAll(/«([^«»]+)»/gu)].map(match => match[1]));
+  for (const name of cited) {
+    for (const dependency of contractsByName.get(name) ?? []) {
+      if (dependency === contract) continue;
+      for (const owner of owners.filter(owner => !targets(dependency, 'define').includes(owner))) {
+        const requirement = byIdentifier.get(owner);
+        const declared = [...(requirement?.contract_references ?? []), ...(requirement?.contract_bindings ?? [])];
+        if (requirement && !declared.includes(dependency.identifier)) {
+          violations.push(`dipendenza fra contratti non dichiarata: ${requirement.name} non riferisce «${name}», citato da ${contract.name} (${contract.file})`);
+        }
+      }
+    }
+  }
+}
+
+const implemented = new Set(requirements.filter(element => targets(element, 'satisfiedBy').length > 0).map(element => element.identifier));
+const verified = new Set();
+for (const verification of verifications) {
+  const verifiedImplemented = targets(verification, 'verify').filter(target => implemented.has(target));
+  verifiedImplemented.forEach(target => verified.add(target));
+  if (verifiedImplemented.length > 0 && verification.type === 'test-verification' && targets(verification, 'satisfiedBy').length === 0) {
+    violations.push(`verifica di test di un requisito implementato senza satisfiedBy: ${verification.name} (${verification.file})`);
+  }
+}
+for (const requirement of requirements.filter(element => implemented.has(element.identifier) && !verified.has(element.identifier))) {
+  violations.push(`requisito implementato senza verifica: ${requirement.name} (${requirement.file})`);
+}
+
 // Dentro un hook Git le variabili GIT_* puntano al repository del commit: si tolgono per leggere ogni repository.
 const gitEnvironment = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
 const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', env: gitEnvironment });
+// Il repository del commit si legge dal suo file indice, gli altri dal proprio indice predefinito.
+const trackedFiles = dir => execFileSync('git', ['-C', dir, 'ls-files'], {
+  encoding: 'utf8',
+  env: staged && realpathSync(dir) === staged.repository ? { ...gitEnvironment, GIT_INDEX_FILE: staged.index } : gitEnvironment,
+});
 const isModelRepository = dir => {
   if (!existsSync(join(dir, 'system-model'))) return false;
   try {
@@ -104,7 +151,7 @@ const repositories = readdirSync(workspace, { withFileTypes: true })
   .map(entry => entry.name);
 const referenced = new Set(JSON.parse(reqvire('resources')).relations.map(relation => relation.file_path));
 for (const repository of repositories) {
-  for (const path of git(join(workspace, repository), 'ls-files').split('\n').filter(Boolean)) {
+  for (const path of trackedFiles(join(workspace, repository)).split('\n').filter(Boolean)) {
     if (governed.some(pattern => pattern.test(path)) && !referenced.has(`${repository}/${path}`)) {
       violations.push(`file di governo non riferito dal modello: ${repository}/${path}`);
     }

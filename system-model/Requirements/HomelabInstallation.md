@@ -18,12 +18,12 @@ Origine: baseline Reqvire «Declared runtime environment», adottata.
 
 ### Arresto unico, ordinato e limitato nel tempo
 
-Ogni processo di servizio di Ambrogio deve avviare un solo percorso di arresto anche quando riceve richieste di arresto ripetute, deve fermare il nuovo lavoro prima di chiudere le risorse da cui quel lavoro dipende, deve tentare la chiusura di ogni risorsa posseduta esattamente una volta, in ordine inverso di acquisizione, tentando le altre chiusure quando una fallisce, e deve applicare all'arresto un tempo massimo esplicito, misurato dall'inizio della chiusura, comprensivo dell'attesa del lavoro in corso e della pulizia e non riavviato da nuove richieste o per ciascuna risorsa; alla scadenza deve terminare con esito non riuscito conservando i guasti già osservati, senza dichiarare conclusi, annullati o ripetibili effetti dall'esito incerto, e il supervisore del deployment deve concedere almeno quella finestra. La composition root non deve delegare la chiusura delle proprie risorse ai loro consumatori.
+Ogni processo di servizio di Ambrogio deve avviare un solo percorso di arresto anche quando riceve richieste di arresto ripetute, deve fermare il nuovo lavoro prima di chiudere le risorse da cui quel lavoro dipende, deve tentare la chiusura di ogni risorsa posseduta esattamente una volta, in ordine inverso di acquisizione, tentando le altre chiusure quando una fallisce, e deve applicare all'arresto un tempo massimo esplicito, misurato dalla prima richiesta di arresto anche quando l'avvio è ancora in corso, comprensivo dell'attesa del lavoro in corso e della pulizia e non riavviato da nuove richieste o per ciascuna risorsa; alla scadenza deve terminare con esito non riuscito conservando i guasti già osservati, senza dichiarare conclusi, annullati o ripetibili effetti dall'esito incerto, e il supervisore del deployment deve concedere almeno quella finestra. La composition root non deve delegare la chiusura delle proprie risorse ai loro consumatori.
 
 #### Details
 I processi di servizio sono il backend e il satellite vocale; ciascuno raffina questo requisito con il proprio tempo massimo e con la finestra dichiarata nei propri esempi di deployment. Con Docker la finestra concessa dal supervisore è il periodo di arresto del container: `stop_grace_period` in Docker Compose, `--stop-timeout` di `docker run` o `--time` di `docker stop`, con valore predefinito di 10 secondi; scaduta la finestra Docker termina il processo con `SIGKILL`. Il lavoro in corso all'arresto è interrotto secondo i requisiti del repository, non atteso fino al completamento.
 
-Origine: baseline Reqvire «Single ordered shutdown», adottata; «Bounded shutdown window», adottata.
+Origine: baseline Reqvire «Single ordered shutdown», adattata: nessun pacchetto runtime condiviso, perché ogni repository ha un'unica applicazione e il runner risiede nella sua cartella `runtime/`; un arresto richiesto e riuscito termina con codice 0 anche per `SIGINT`, invece di 130; «Bounded shutdown window», adottata.
 
 #### Metadata
   * type: requirement
@@ -51,12 +51,12 @@ Origine: baseline Reqvire «Explicit loading of local environment files», adott
 
 ### Configurazioni effettive escluse dagli artefatti
 
-Ogni repository di Ambrogio deve tenere fuori dal repository Git e dagli artefatti distribuiti, come le immagini container, i file di configurazione effettivi delle installazioni, e i suoi esempi di configurazione non devono contenere credenziali effettive.
+Ogni repository di Ambrogio deve tenere fuori dal repository Git e dagli artefatti distribuiti, come le immagini container, i file di configurazione effettivi delle installazioni, e i suoi esempi di configurazione non devono contenere credenziali, nemmeno quelle di un servizio locale di sviluppo, ma soltanto valori segnaposto non utilizzabili.
 
 #### Details
 I repository che leggono configurazioni effettive raffinano questo requisito con i propri file di esclusione e le proprie prove.
 
-Origine: baseline Reqvire «Actual configuration files kept out of artifacts», adottata; «Configuration examples without credentials», adottata.
+Origine: baseline Reqvire «Actual configuration files kept out of artifacts», adottata; «Configuration examples without credentials», adattata: soltanto valori segnaposto, nessuna credenziale di sviluppo locale.
 
 #### Metadata
   * type: requirement
